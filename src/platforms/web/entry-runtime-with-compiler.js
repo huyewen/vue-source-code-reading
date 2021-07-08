@@ -1,5 +1,5 @@
 /* @flow */
-
+// 对Vue的第三层封装
 import config from 'core/config'
 import { warn, cached } from 'core/util/index'
 import { mark, measure } from 'core/util/perf'
@@ -14,6 +14,7 @@ const idToTemplate = cached(id => {
   return el && el.innerHTML
 })
 
+// 给Vue原型上添加元素挂载方法
 const mount = Vue.prototype.$mount
 Vue.prototype.$mount = function (
   el?: string | Element,
@@ -86,11 +87,14 @@ Vue.prototype.$mount = function (
  * Get outerHTML of elements, taking care
  * of SVG elements in IE as well.
  */
+// 获取
 function getOuterHTML (el: Element): string {
+  // 如果el.outerHTML存在,则返回包含el以及el所有子元素
   if (el.outerHTML) {
     return el.outerHTML
   } else {
     const container = document.createElement('div')
+    // 将对el进行深复制（包含el中所有节点关系）后的副本添加到新创建的container中
     container.appendChild(el.cloneNode(true))
     return container.innerHTML
   }

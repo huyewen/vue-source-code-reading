@@ -1,5 +1,5 @@
 /* @flow */
-
+// 对Vue的第二层封装
 import Vue from 'core/index'
 import config from 'core/config'
 import { extend, noop } from 'shared/util'
@@ -27,7 +27,13 @@ Vue.config.getTagNamespace = getTagNamespace
 Vue.config.isUnknownElement = isUnknownElement
 
 // install platform runtime directives & components
+/**
+ * platformDirectives : {model,show}
+ */
 extend(Vue.options.directives, platformDirectives)
+/**
+ * platformComponents : {Transition,TransitionGroup}
+ */
 extend(Vue.options.components, platformComponents)
 
 // install platform patch function
@@ -74,3 +80,29 @@ if (inBrowser) {
 }
 
 export default Vue
+
+/**
+ * 经过对Vue的第二层封装后，Vue.options变成
+ * Vue.options = {
+ *  filters: {},
+ *  direatives: {
+ *    model: { ... },
+ *    show: { ... }
+ *  },
+ *  components: {
+ *    keepAlive: {
+ *      name: 'keep-alive',
+ *      ...
+ *    },
+ *    Transition: {
+ *      name: 'transition',
+ *      ...
+ *    },
+ *    TransitionGroup: {
+ *      name: 'transition-group',
+ *      ...
+ *    }
+ *  }
+ * }
+ *
+ */

@@ -13,8 +13,10 @@ export function initEvents (vm: Component) {
   vm._events = Object.create(null)
   vm._hasHookEvent = false
   // init parent attached events
+  // 初始化父级绑定的事件 例如@click="handler" ==> 类似 {click: f(){}}
   const listeners = vm.$options._parentListeners
   if (listeners) {
+    // 如果存在父级绑定的事件，则更新组件的listeners
     updateComponentListeners(vm, listeners)
   }
 }
@@ -44,6 +46,7 @@ export function updateComponentListeners (
   listeners: Object,
   oldListeners: ?Object
 ) {
+  // 将
   target = vm
   updateListeners(listeners, oldListeners || {}, add, remove, createOnceHandler, vm)
   target = undefined
