@@ -95,12 +95,13 @@ export function initMixin (Vue: Class<Component>) {
     */
     callHook(vm, 'created')
 
+    // 性能测量，以下是结束测量------
     /* istanbul ignore if */
-    if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
-      vm._name = formatComponentName(vm, false)
-      mark(endTag)
-      measure(`vue ${vm._name} init`, startTag, endTag)
-    }
+    // if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+    //   vm._name = formatComponentName(vm, false)
+    //   mark(endTag)
+    //   measure(`vue ${vm._name} init`, startTag, endTag)
+    // }
 
     if (vm.$options.el) {
       vm.$mount(vm.$options.el)
@@ -108,9 +109,21 @@ export function initMixin (Vue: Class<Component>) {
   }
 }
 
+// 该函数用于性能优化，创建配置对象访问API，减少运行时原型链的查找，提高执行效率
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
+  // 基于 构造函数 上的配置对象创建 vm.$options
+  // 也就是创建一个以构造函数的静态属性options为原型的对象并赋值给vm.$options
+  /**
+   * 例如以下代码
+   * function Vue(){}
+   * Vue.options = {...}
+   * vm = new Vue()
+   * vm.$options = Object.create(Vue.options)
+   * 
+   */
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
+  // 这样做是因为它比动态枚举快
   const parentVnode = options._parentVnode
   opts.parent = options.parent
   opts._parentVnode = parentVnode
@@ -127,21 +140,32 @@ export function initInternalComponent (vm: Component, options: InternalComponent
   }
 }
 
+// 从实例构造函数上获取配置选项
 export function resolveConstructorOptions (Ctor: Class<Component>) {
+  // 如果不存在基类，也就是说Ctor是基础Vue构造器时，那么options就是Vue构造函数上的options（静态属性）
+  // 具体Vue.options里面有什么可以看vue-2.6.14\src\platforms\web\runtime\index.js中底部的注释
   let options = Ctor.options
+  // Ctor有super属性，说明Ctor是通过Vue.extend()创建的子类
   if (Ctor.super) {
+    // 以递归方式获取基类上的配置项
     const superOptions = resolveConstructorOptions(Ctor.super)
+    // 缓存基类的配置选项
     const cachedSuperOptions = Ctor.superOptions
+    // 当两个不相等时，说明基类的配置项发生了更改
     if (superOptions !== cachedSuperOptions) {
       // super option changed,
       // need to resolve new options.
+      // 将新的基类选项重新存到构造函数中
       Ctor.superOptions = superOptions
       // check if there are any late-modified/attached options (#4976)
+      // 找到已更改的配置选项
       const modifiedOptions = resolveModifiedOptions(Ctor)
       // update base extend options
       if (modifiedOptions) {
+        // 如果有已更改选项，则将已更改选项modifiedOptions和extend选项合并
         extend(Ctor.extendOptions, modifiedOptions)
       }
+      // 将基类选项和extend选项进行合并后重新赋值给options
       options = Ctor.options = mergeOptions(superOptions, Ctor.extendOptions)
       if (options.name) {
         options.components[options.name] = Ctor
