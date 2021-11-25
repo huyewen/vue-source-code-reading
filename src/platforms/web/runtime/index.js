@@ -81,7 +81,7 @@ if (inBrowser) {
 
 export default Vue
 
-/**
+/* *
  * 经过对Vue的第二层封装后，Vue.options变成
  * Vue.options = {
  *  filters: {},

@@ -32,6 +32,7 @@ export default Vue
 /**
  * 第一层包装后Vue.options里面有
  * Vue.options = {
+ *  _base: this // Vue本身，这个后面用得到
  *  filters: {},
  *  direatives: {},
  *  components: {

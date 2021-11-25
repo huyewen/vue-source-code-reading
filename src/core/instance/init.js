@@ -120,6 +120,8 @@ export function initInternalComponent (vm: Component, options: InternalComponent
    * vm = new Vue()
    * vm.$options = Object.create(Vue.options)
    * 
+   * 这样便于子组件能够访问到构造函数的options，例如拿到全局指令、
+   * 全局组件和全局过滤器等等
    */
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
