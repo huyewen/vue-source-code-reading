@@ -205,6 +205,7 @@ export function createComponent (
   return vnode
 }
 
+// 为虚拟节点创建组件实例
 export function createComponentInstanceForVnode (
   // we know it's MountedComponentVNode but flow doesn't
   vnode: any,
@@ -212,9 +213,9 @@ export function createComponentInstanceForVnode (
   parent: any
 ): Component {
   const options: InternalComponentOptions = {
-    _isComponent: true,
-    _parentVnode: vnode,
-    parent
+    _isComponent: true, // 当前实例为组件
+    _parentVnode: vnode, // 当前组件虚拟节点
+    parent // 父组件实例
   }
   // check inline-template render functions
   const inlineTemplate = vnode.data.inlineTemplate
@@ -252,7 +253,7 @@ function mergeHook (f1: any, f2: any): Function {
 function transformModel (options, data: any) {
   const prop = (options.model && options.model.prop) || 'value'
   const event = (options.model && options.model.event) || 'input'
-  ;(data.attrs || (data.attrs = {}))[prop] = data.model.value
+    ; (data.attrs || (data.attrs = {}))[prop] = data.model.value
   const on = data.on || (data.on = {})
   const existing = on[event]
   const callback = data.model.callback

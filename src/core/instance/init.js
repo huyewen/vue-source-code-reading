@@ -109,7 +109,7 @@ export function initMixin (Vue: Class<Component>) {
   }
 }
 
-// 该函数用于性能优化，创建配置对象访问API，减少运行时原型链的查找，提高执行效率
+// 该函数作用指定组件$options对象，把组件依赖于父组件的props、listeners也挂载到options上，方便子组件调用。
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
   // 基于 构造函数 上的配置对象创建 vm.$options
   // 也就是创建一个以构造函数的静态属性options为原型的对象并赋值给vm.$options
@@ -126,16 +126,22 @@ export function initInternalComponent (vm: Component, options: InternalComponent
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
   // 这样做是因为它比动态枚举快
-  const parentVnode = options._parentVnode
+  const parentVnode = options._parentVnode // 当前组件虚拟节点
+  // 父组件实例
   opts.parent = options.parent
+  // 将虚拟节点挂载到opts._parentVnode
   opts._parentVnode = parentVnode
 
+  // 获取当前组件的选项
   const vnodeComponentOptions = parentVnode.componentOptions
+  // 将父组件调用当前组件所传的props数据挂载到组件实例的$options上
   opts.propsData = vnodeComponentOptions.propsData
+  // 将父组件调用当前组件所绑定的事件挂载到组件实例的$options上
   opts._parentListeners = vnodeComponentOptions.listeners
+  // 将子组件虚拟节点数组挂载到opts._renderChildren上
   opts._renderChildren = vnodeComponentOptions.children
   opts._componentTag = vnodeComponentOptions.tag
-
+  // 如果传入的option中如果有render，把render相关的也挂载到$options上。
   if (options.render) {
     opts.render = options.render
     opts.staticRenderFns = options.staticRenderFns
