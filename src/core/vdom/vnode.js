@@ -1,17 +1,17 @@
 /* @flow */
 
 export default class VNode {
-  tag: string | void;
-  data: VNodeData | void;
-  children: ?Array<VNode>;
-  text: string | void;
-  elm: Node | void;
-  ns: string | void;
-  context: Component | void; // rendered in this component's scope
-  key: string | number | void;
-  componentOptions: VNodeComponentOptions | void;
-  componentInstance: Component | void; // component instance
-  parent: VNode | void; // component placeholder node
+  tag: string | void; // 节点标签名称
+  data: VNodeData | void; // 虚拟节点数据
+  children: ?Array<VNode>; // 子虚拟节点
+  text: string | void; // 当前节点的文本，一般文本节点或注释节点会有该属性
+  elm: Node | void; // 当前虚拟节点对应的真实DOM节点
+  ns: string | void; // 节点的namespace
+  context: Component | void; // 组件的渲染上下文
+  key: string | number | void; // 节点的key属性，用于作为节点的标识，有利于patch的优化
+  componentOptions: VNodeComponentOptions | void; // 创建组件实例时用到的选项信息
+  componentInstance: Component | void; // 组件实例
+  parent: VNode | void; // 组件占位节点
 
   // strictly internal
   raw: boolean; // contains raw HTML? (server only)
@@ -29,7 +29,7 @@ export default class VNode {
   devtoolsMeta: ?Object; // used to store functional render context for devtools
   fnScopeId: ?string; // functional scope id support
 
-  constructor (
+  constructor(
     tag?: string,
     data?: VNodeData,
     children?: ?Array<VNode>,
