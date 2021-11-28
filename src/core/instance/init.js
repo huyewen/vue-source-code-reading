@@ -175,6 +175,7 @@ export function resolveConstructorOptions (Ctor: Class<Component>) {
       }
       // 将基类选项和extend选项进行合并后重新赋值给options
       options = Ctor.options = mergeOptions(superOptions, Ctor.extendOptions)
+
       if (options.name) {
         options.components[options.name] = Ctor
       }
