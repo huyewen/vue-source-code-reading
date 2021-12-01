@@ -10,6 +10,9 @@ export function initExtend (Vue: GlobalAPI) {
    * cid. This enables us to create wrapped "child
    * constructors" for prototypal inheritance and cache them.
    */
+  /**
+   * 每一个实例构造器，包括Vue，都有一个唯一的cid，让我们可以为原型继承创建
+   */
   Vue.cid = 0
   let cid = 1
 
@@ -18,30 +21,39 @@ export function initExtend (Vue: GlobalAPI) {
    */
   Vue.extend = function (extendOptions: Object): Function {
     // 子类选项
-    extendOptions = extendOptions || {} 
-    const Super = this
-    const SuperId = Super.cid
+    extendOptions = extendOptions || {} // 创建子类时传入的options
+    const Super = this // Super指向父级构造函数
+    const SuperId = Super.cid // 父级cid
+    /**
+     * extendOptions._Ctor用于缓存构造函数，我们在使用自定子
+     * 组件的时候会调用Vue.extend，初次生成vnode的时候生成新
+     * 构造函数并缓存，如果页面数据有跟新，则会重新生成vnode
+     * 并做diff，在第二次生成vnode过程中给，调用Vue.extend就
+     * 回直接从缓存中取。
+     */
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId]
     }
-
+    // 
     const name = extendOptions.name || Super.options.name
     if (process.env.NODE_ENV !== 'production' && name) {
       validateComponentName(name)
     }
-
+    // 创建子类构造器
     const Sub = function VueComponent (options) {
       this._init(options)
     }
+    // 将子类构造器原型指向父类构造器原型，也就是继承父类原型链
     Sub.prototype = Object.create(Super.prototype) // 继承
+    // 将子类原型对象上的constructor属性从新指向子类构造器
     Sub.prototype.constructor = Sub
-    Sub.cid = cid++
-    Sub.options = mergeOptions(
+    Sub.cid = cid++ // 设置子类唯一编号cid值
+    Sub.options = mergeOptions( // 合并子类选项
       Super.options,
       extendOptions
     )
-    Sub['super'] = Super
+    Sub['super'] = Super // 将super指向父类构造器
 
     // For props and computed properties, we define the proxy getters on
     // the Vue instances at extension time, on the extended prototype. This
@@ -75,7 +87,19 @@ export function initExtend (Vue: GlobalAPI) {
     Sub.extendOptions = extendOptions
     Sub.sealedOptions = extend({}, Sub.options)
 
+    /**
+     * 最后 Sub上没有的属性和方法如下
+     * Vue.version = '__VERSION__'
+        Vue.compile = compileToFunctions
+        Vue.config 
+        Vue.util
+        Vue.set
+        Vue.delete
+        Vue.nextTick
+     */
+
     // cache constructor
+    // 缓存子类构造器
     cachedCtors[SuperId] = Sub
     return Sub
   }

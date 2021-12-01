@@ -184,11 +184,14 @@ function mergeHook (
    * 1、如果子类和父类都拥有钩子选项，则将子类选项和父类选项合并
    * 2、如果子类存在钩子选项，父类不存在钩子选项，则以数组形式返回子类钩子选项，
    * 3、当子类不存在钩子选项时，则以父类选项返回
+   * 
+   * 子父合并时，将子类选项放在数组的末尾，
+   * 这样在执行钩子时，永远是父类选项优先于子类选项
    */
   const res = childVal
-    ? parentVal
+    ? parentVal // 如果有parentVal，那么他一定是数组
       ? parentVal.concat(childVal)
-      : Array.isArray(childVal)
+      : Array.isArray(childVal) // 查看childVal是否为数组
         ? childVal
         : [childVal]
     : parentVal
@@ -196,6 +199,49 @@ function mergeHook (
     ? dedupeHooks(res)
     : res
 }
+
+/**
+ * 看到上面有一句判断： Array.isArray(childVal)
+ * 那么也就是说，钩子函数可以使用数组形式，所以可以写成这样
+ * {
+ *    created: [
+ *      function() { ... },
+ *      function() { ... },
+ *      function() { ... },
+ *    ]
+ * }
+ * 嘿嘿，又学到了
+ */
+
+/**
+ * 举个例子
+ * 
+ * 
+const Parent = Vue.extend({
+  created: function () {
+    console.log('parentVal')
+  }
+})
+ 
+const Child = new Parent({
+  created: function () {
+    console.log('childVal')
+  }
+})
+
+最后合并后的数组
+{
+  created: [
+    function () {
+      console.log('parentVal')
+    },
+    function () {
+      console.log('childVal')
+    }
+  ]
+}
+ */
+
 // 防止多个组件实例钩子选项相互影响
 function dedupeHooks (hooks) {
   const res = []
@@ -288,8 +334,8 @@ ASSET_TYPES.forEach(function (type) {
 /**
  * Watchers.
  *
- * Watchers hashes should not overwrite one
- * another, so we merge them as arrays.
+ * watch选项的合并，最终和父类选项合并成数组，并且数组的选项成员
+ * 可以使回调函数，选项对象后者函数名
  */
 strats.watch = function (
   parentVal: ?Object,
@@ -297,32 +343,37 @@ strats.watch = function (
   vm?: Component,
   key: string
 ): ?Object {
-  // work around Firefox's Object.prototype.watch...
+  // 这里的判断是因为火狐浏览器在Object原型上拥有watch方法，这里对这一现象做了兼容
   if (parentVal === nativeWatch) parentVal = undefined
   if (childVal === nativeWatch) childVal = undefined
-  /* istanbul ignore if */
+  // 如果子选项watch不存在，则返回以父类选项watch对象为原型的空对象
   if (!childVal) return Object.create(parentVal || null)
   if (process.env.NODE_ENV !== 'production') {
+    // 开发版本下，要求watch必须是对象
     assertObjectType(key, childVal, vm)
   }
+  // 如果parentVal不存在，则直接返回childVal
   if (!parentVal) return childVal
   const ret = {}
   extend(ret, parentVal)
   for (const key in childVal) {
     let parent = ret[key]
     const child = childVal[key]
+    // 若父选项的存在并且不是数组则转化为数组
     if (parent && !Array.isArray(parent)) {
       parent = [parent]
     }
     ret[key] = parent
-      ? parent.concat(child)
-      : Array.isArray(child) ? child : [child]
+      ? parent.concat(child) // 合并子选项
+      : Array.isArray(child) ? child : [child] // 父选项不存在 ，子选项若不是数组，则转化为数组
   }
   return ret
 }
 
 /**
- * Other object hashes.
+ * 这里阿静props，methods，inject，computed归为一类并使用相同的合并策略，
+ * 简而言之就是，如果父类不存在相应选项，则返回子类选项，子类父类都存在，
+ * 则用子类选项去覆盖父类选项，如果都不存在，则返回空对象。
  */
 strats.props =
   strats.methods =
