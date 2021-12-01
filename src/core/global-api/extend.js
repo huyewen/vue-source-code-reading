@@ -14,10 +14,11 @@ export function initExtend (Vue: GlobalAPI) {
   let cid = 1
 
   /**
-   * Class inheritance
+   * Class inheritance 类继承
    */
   Vue.extend = function (extendOptions: Object): Function {
-    extendOptions = extendOptions || {}
+    // 子类选项
+    extendOptions = extendOptions || {} 
     const Super = this
     const SuperId = Super.cid
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
@@ -33,7 +34,7 @@ export function initExtend (Vue: GlobalAPI) {
     const Sub = function VueComponent (options) {
       this._init(options)
     }
-    Sub.prototype = Object.create(Super.prototype)
+    Sub.prototype = Object.create(Super.prototype) // 继承
     Sub.prototype.constructor = Sub
     Sub.cid = cid++
     Sub.options = mergeOptions(

@@ -61,11 +61,19 @@ if (process.env.NODE_ENV !== 'production') {
 /**
  * Helper that recursively merges two data objects together.
  */
+/**
+ * 
+ * @param {*} to childVal 子data选项
+ * @param {*} from parentVal 父data选项
+ * @returns 子data选项
+ * @description 将父类的数据整合到子类的数据选项中，如若父类数据和子类数据冲突，保留子类
+ * 数据，如果有对象深层嵌套，则递归调用mergeData进行数据合并
+ */
 function mergeData (to: Object, from: ?Object): Object {
   if (!from) return to
   let key, toVal, fromVal
 
-  const keys = hasSymbol
+  const keys = hasSymbol // Reflect.ownKeys能拿到symbol类型的key
     ? Reflect.ownKeys(from)
     : Object.keys(from)
 
@@ -75,7 +83,9 @@ function mergeData (to: Object, from: ?Object): Object {
     if (key === '__ob__') continue
     toVal = to[key]
     fromVal = from[key]
+
     if (!hasOwn(to, key)) {
+      // 父的数据子类数据选项没有，则将父类key添加到子类的响应式系统中
       set(to, key, fromVal)
     } else if (
       toVal !== fromVal &&
@@ -104,19 +114,20 @@ export function mergeDataOrFn (
     if (!parentVal) { // 父类不存在data，返回子类data
       return childVal
     }
-    // when parentVal & childVal are both present,
-    // we need to return a function that returns the
-    // merged result of both functions... no need to
-    // check if parentVal is a function here because
-    // it has to be a function to pass previous merges.
-    return function mergedDataFn () {
+    // 当 parentVal 和 childVal 都存在时，
+    // 我们需要返回一个函数来返回
+    // 两个函数的合并结果...不需要
+    // 在这里检查 parentVal 是否是一个函数，因为
+    // 它必须是一个传递先前合并的函数。
+
+    return function mergedDataFn () { // 返回合并数据函数
       return mergeData(
         typeof childVal === 'function' ? childVal.call(this, this) : childVal,
         typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
       )
     }
   } else { // Vue实例
-    return function mergedInstanceDataFn () {
+    return function mergedInstanceDataFn () { // 返回实例合并数据函数
       // instance merge
       const instanceData = typeof childVal === 'function'
         ? childVal.call(vm, vm)
@@ -135,6 +146,7 @@ export function mergeDataOrFn (
 
 /**
  * 选项data合并策略
+ * 
  */
 strats.data = function (
   parentVal: any,
@@ -153,19 +165,26 @@ strats.data = function (
 
       return parentVal
     }
+    // 组件实例
     return mergeDataOrFn(parentVal, childVal)
   }
-
+  // Vue实例
   return mergeDataOrFn(parentVal, childVal, vm)
 }
 
 /**
  * Hooks and props are merged as arrays.
+ * 生命周期钩子函数的合并
  */
 function mergeHook (
   parentVal: ?Array<Function>,
   childVal: ?Function | ?Array<Function>
 ): ?Array<Function> {
+  /**
+   * 1、如果子类和父类都拥有钩子选项，则将子类选项和父类选项合并
+   * 2、如果子类存在钩子选项，父类不存在钩子选项，则以数组形式返回子类钩子选项，
+   * 3、当子类不存在钩子选项时，则以父类选项返回
+   */
   const res = childVal
     ? parentVal
       ? parentVal.concat(childVal)
@@ -177,7 +196,7 @@ function mergeHook (
     ? dedupeHooks(res)
     : res
 }
-
+// 防止多个组件实例钩子选项相互影响
 function dedupeHooks (hooks) {
   const res = []
   for (let i = 0; i < hooks.length; i++) {
@@ -188,16 +207,56 @@ function dedupeHooks (hooks) {
   return res
 }
 
+/**
+ * 
+ * var LIFECYCLE_HOOKS = [
+ * 'beforeCreate',
+ * 'created',
+ * 'beforeMount',
+ * 'mounted',
+ * 'beforeUpdate',
+ * 'updated',
+ * 'beforeDestroy',
+ * 'destroyed',
+ * 'activated',
+ * 'deactivated',
+ * 'errorCaptured',
+ * 'serverPrefetch'
+ * ];
+ */
 LIFECYCLE_HOOKS.forEach(hook => {
-  strats[hook] = mergeHook
+  strats[hook] = mergeHook // 对生命周期钩子选项的合并都执行mergeHook策略
 })
 
+// Assets 资源选项合并
 /**
- * Assets
- *
- * When a vm is present (instance creation), we need to do
- * a three-way merge between constructor options, instance
- * options and parent options.
+ * 例如
+ * var vm = new Vue({
+    components: {
+      componentA: {}
+    },
+    directives: {
+      'v-boom': {}
+    }
+  })
+  // 最后资源选项经过合并
+  {
+    components: {
+      componentA: {},
+      __proto__: {
+        KeepAlive: {}
+        Transition: {}
+        TransitionGroup: {}
+      } 
+    },
+    directives: {
+      'v-boom': {},
+      __proto__: {
+        'v-show': {},
+        'v-model': {}
+      }
+    }
+  }
  */
 function mergeAssets (
   parentVal: ?Object,
@@ -205,14 +264,22 @@ function mergeAssets (
   vm?: Component,
   key: string
 ): Object {
+  // 创建一个以父级资源选项为原型的空对象
   const res = Object.create(parentVal || null)
   if (childVal) {
+    // components,filters,directives选项必须为对象
     process.env.NODE_ENV !== 'production' && assertObjectType(key, childVal, vm)
+    // 子类选项赋值给空对象
     return extend(res, childVal)
   } else {
     return res
   }
 }
+/**
+ * strats.components = () =>{}
+ * strats.filters = () =>{}
+ * strats.directives = () =>{}
+ */
 
 ASSET_TYPES.forEach(function (type) {
   strats[type + 's'] = mergeAssets
@@ -502,12 +569,12 @@ export function mergeOptions (
 
   const options = {}
   let key
-  // 父选项有则那父选项的选项
+  // 先合并父选项中的选项
   for (key in parent) {
     mergeField(key)
   }
   for (key in child) {
-    // 当父选项没有就拿子选项中的选项
+    // 再合并父选项中没有的选项
     if (!hasOwn(parent, key)) {
       mergeField(key)
     }
