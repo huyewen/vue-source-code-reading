@@ -35,7 +35,7 @@ const sharedPropertyDefinition = {
   get: noop,
   set: noop
 }
-
+// 代理数据的访问，在这一步之后就可以通过this.property来访问data选项中的property
 export function proxy (target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
@@ -80,7 +80,7 @@ function initProps (vm: Component, propsOptions: Object) {
     if (process.env.NODE_ENV !== 'production') {
       const hyphenatedKey = hyphenate(key)
       if (isReservedAttribute(hyphenatedKey) ||
-          config.isReservedAttr(hyphenatedKey)) {
+        config.isReservedAttr(hyphenatedKey)) {
         warn(
           `"${hyphenatedKey}" is a reserved attribute and cannot be used as component prop.`,
           vm
@@ -145,6 +145,8 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
+      // 如果不是保留属性，也就是说该属性名称不是以_、$开头的，在这里做一层过滤，
+      // 除此之外在initProxy中又做了一次过滤
       proxy(vm, `_data`, key)
     }
   }
@@ -230,7 +232,7 @@ export function defineComputed (
     sharedPropertyDefinition.set = userDef.set || noop
   }
   if (process.env.NODE_ENV !== 'production' &&
-      sharedPropertyDefinition.set === noop) {
+    sharedPropertyDefinition.set === noop) {
     sharedPropertyDefinition.set = function () {
       warn(
         `Computed property "${key}" was assigned to but it has no setter.`,
@@ -256,7 +258,7 @@ function createComputedGetter (key) {
   }
 }
 
-function createGetterInvoker(fn) {
+function createGetterInvoker (fn) {
   return function computedGetter () {
     return fn.call(this, this)
   }

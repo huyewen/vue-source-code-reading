@@ -51,16 +51,16 @@ export function createFnInvoker (fns: Function | Array<Function>, vm: ?Component
 }
 
 export function updateListeners (
-  on: Object,
+  on: Object, // listeners对象
   oldOn: Object,
-  add: Function,
-  remove: Function,
-  createOnceHandler: Function,
+  add: Function, // 事件绑定
+  remove: Function, // 事件移除
+  createOnceHandler: Function, // once一次性绑定
   vm: Component
 ) {
   let name, def, cur, old, event
   for (name in on) {
-    def = cur = on[name]
+    def = cur = on[name] // 事件函数
     old = oldOn[name]
     event = normalizeEvent(name)
     /* istanbul ignore if */

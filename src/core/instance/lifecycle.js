@@ -21,7 +21,7 @@ import {
 export let activeInstance: any = null
 export let isUpdatingChildComponent: boolean = false
 
-export function setActiveInstance(vm: Component) {
+export function setActiveInstance (vm: Component) {
   const prevActiveInstance = activeInstance
   activeInstance = vm
   return () => {
@@ -337,13 +337,15 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()
+  // 获得周期钩子函数hook
   const handlers = vm.$options[hook]
   const info = `${hook} hook`
-  if (handlers) {
+  if (handlers) { // 当周期钩子函数存在时调用该钩子函数
     for (let i = 0, j = handlers.length; i < j; i++) {
       invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }
   }
+  // 如果存在钩子事件，则调用钩子事件对应的处理程序
   if (vm._hasHookEvent) {
     vm.$emit('hook:' + hook)
   }
