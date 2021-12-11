@@ -23,6 +23,7 @@ Vue.prototype.$mount = function (
   el = el && query(el)
 
   /* istanbul ignore if */
+  // el不能是body和HTML元素
   if (el === document.body || el === document.documentElement) {
     process.env.NODE_ENV !== 'production' && warn(
       `Do not mount Vue to <html> or <body> - mount to normal elements instead.`
@@ -32,29 +33,42 @@ Vue.prototype.$mount = function (
 
   const options = this.$options
   // resolve template/el and convert to render function
+  /**
+   * 当选项中没有渲染函数，则拿到template并将其编译成渲染函数
+   * 然后将编译后的渲染函数挂载到$options上的render属性上
+   */
   if (!options.render) {
     let template = options.template
     if (template) {
+      /**
+       * 当模板选项存在时，如果模板选项是字符串，则继续判断模板选项值
+       * 是不是id选择器，是的话通过id获取对应元素对象；如果模板选项是
+       * 元素对象，则将template选项置为innerHTML；如果模板选项是其它
+       * 类型，则视为无效选项。
+       */
       if (typeof template === 'string') {
-        if (template.charAt(0) === '#') {
-          template = idToTemplate(template)
+        if (template.charAt(0) === '#') { // template为script模板的id
+          template = idToTemplate(template) // 获取模板
           /* istanbul ignore if */
-          if (process.env.NODE_ENV !== 'production' && !template) {
+          if (process.env.NODE_ENV !== 'production' && !template) { // 模板不存在，提示警告
             warn(
               `Template element not found or is empty: ${options.template}`,
               this
             )
           }
         }
-      } else if (template.nodeType) {
+      } else if (template.nodeType) {       // 模板为HTML元素节点
         template = template.innerHTML
-      } else {
+      } else { // 无效模板
         if (process.env.NODE_ENV !== 'production') {
           warn('invalid template option:' + template, this)
         }
         return this
       }
     } else if (el) {
+      /**
+       * 如果模板选项不存在，则拿到el对应的HTML代码作为模板并赋给template选项
+       */
       template = getOuterHTML(el)
     }
     if (template) {
@@ -62,7 +76,7 @@ Vue.prototype.$mount = function (
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
         mark('compile')
       }
-
+      // 将模板编译并生成render函数并将render函数挂到render选项上
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,

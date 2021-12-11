@@ -143,6 +143,7 @@ export function mountComponent (
   el: ?Element,
   hydrating?: boolean
 ): Component {
+  // 将el元素对象挂到$el属性上
   vm.$el = el
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode
@@ -164,9 +165,27 @@ export function mountComponent (
       }
     }
   }
+  /**
+   * 调用beforeMount钩子函数
+   * 在这里做一个总结，说明在beforeMount之前，created之后做了些什么
+   * 
+   * 总结：
+   * 1、首先是判断$options选项中是否有el选项，没有就啥也不做，有则进行下一步；
+   * 2、获取el对应的元素对象，判断是否为body元素或者html元素，是的话警告报错，不是则下一步；
+   * 3、判断$options中是否有render函数，没有则获取$options中的template选项，然后进行下一步，若有render函数则到第8步；
+   * 4、判断template选项是否存在，存在则下一步
+   * 5、判断template选项是否为字符串，若是字符串则继续判断该字符串是否为选择器，若是选择器则通过选择器拿到对应的元素对象，
+   *    并将该对象的innerHTML赋给template（注意innerHTML返回的节点不能是文本节点）。若不是字符串则判断template选项是否为
+   *    元素对象，是则将该对象的innerHTML赋给template。若template啥也不是，则作为无效模板，到此为止。
+   * 6、若template选项不存在，则判断el对应的元素对象是否存在，若存在，则将el对应的元素对象的innerHTML赋给template。
+   * 7、将template编译并生成render函数，将render函数挂到$options.render上。
+   * 8、调用mountComponent，将el对应的元素对象挂到vm.$el上，然后调用beforeMount钩子函数。
+   * 
+   * 所以在beforeMount中是可以调用$el的，但是模板还没挂载进去，拿到的是没挂载前的元素对象。
+   */
   callHook(vm, 'beforeMount')
 
-  let updateComponent
+  let updateComponent // 
   /* istanbul ignore if */
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
     updateComponent = () => {
@@ -176,12 +195,12 @@ export function mountComponent (
       const endTag = `vue-perf-end:${id}`
 
       mark(startTag)
-      const vnode = vm._render()
+      const vnode = vm._render() // 调用render函数生成虚拟节点
       mark(endTag)
       measure(`vue ${name} render`, startTag, endTag)
 
       mark(startTag)
-      vm._update(vnode, hydrating)
+      vm._update(vnode, hydrating) // 将虚拟节点生成真正的DOM节点
       mark(endTag)
       measure(`vue ${name} patch`, startTag, endTag)
     }
@@ -191,9 +210,13 @@ export function mountComponent (
     }
   }
 
-  // we set this to vm._watcher inside the watcher's constructor
-  // since the watcher's initial patch may call $forceUpdate (e.g. inside child
-  // component's mounted hook), which relies on vm._watcher being already defined
+  /**
+   * 我们在观察者的构造函数中将其设置为 vm._watcher
+   * 因为观察者的初始补丁可能会调用 $forceUpdate（例如在 child
+   * 组件的挂载钩子），它依赖于已经定义的 vm._watcher
+   * 
+   * noop 无任何操作的函数
+   */
   new Watcher(vm, updateComponent, noop, {
     before () {
       if (vm._isMounted && !vm._isDestroyed) {
