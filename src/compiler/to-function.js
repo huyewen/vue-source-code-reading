@@ -17,7 +17,11 @@ function createFunction (code, errors) {
     return noop
   }
 }
-
+/**
+ * createCompileToFunctionFn利用了闭包的概念，将编译过的模板进行缓存，cache会将之前
+ * 编译过的结果保留下来，利用缓存可以避免重复编译引起的性能浪费最终将compileToFunctionFn
+ * 返回。
+ *  */
 export function createCompileToFunctionFn (compile: Function): Function {
   const cache = Object.create(null)
 
@@ -52,11 +56,14 @@ export function createCompileToFunctionFn (compile: Function): Function {
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
+
+    // 起到缓存作用，避免重复编译同个模板造成性能的浪费
     if (cache[key]) {
       return cache[key]
     }
 
     // compile
+    // 执行编译方法
     const compiled = compile(template, options)
 
     // check compilation errors/tips
@@ -90,6 +97,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     // turn code into functions
     const res = {}
     const fnGenErrors = []
+    // 编译出的额函数体字符串作为参数传递给createFunction，返回最终的render函数
     res.render = createFunction(compiled.render, fnGenErrors)
     res.staticRenderFns = compiled.staticRenderFns.map(code => {
       return createFunction(code, fnGenErrors)
@@ -99,6 +107,9 @@ export function createCompileToFunctionFn (compile: Function): Function {
     // this should only happen if there is a bug in the compiler itself.
     // mostly for codegen development use
     /* istanbul ignore if */
+    /**
+     * 检查函数生成错误，一般来讲，只有编译器内部存在bug才会出现这错
+     */
     if (process.env.NODE_ENV !== 'production') {
       if ((!compiled.errors || !compiled.errors.length) && fnGenErrors.length) {
         warn(

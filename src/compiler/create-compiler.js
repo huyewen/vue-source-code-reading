@@ -5,10 +5,12 @@ import { detectErrors } from './error-detector'
 import { createCompileToFunctionFn } from './to-function'
 
 export function createCompilerCreator (baseCompile: Function): Function {
+  // 利用闭包的方式缓存baseCompile方法
   return function createCompiler (baseOptions: CompilerOptions) {
+    // 系统基础配置baseOptions将通过闭包的方式被缓存
     function compile (
       template: string,
-      options?: CompilerOptions
+      options?: CompilerOptions // 用户传递的peizhi
     ): CompiledResult {
       const finalOptions = Object.create(baseOptions)
       const errors = []
@@ -17,7 +19,7 @@ export function createCompilerCreator (baseCompile: Function): Function {
       let warn = (msg, range, tip) => {
         (tip ? tips : errors).push(msg)
       }
-
+      // 编译选项的合并
       if (options) {
         if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
           // $flow-disable-line
@@ -57,7 +59,7 @@ export function createCompilerCreator (baseCompile: Function): Function {
       }
 
       finalOptions.warn = warn
-
+      // 将剔除 空格后的模板以及合并选项后的配置作为参数传递给baseCompile方法
       const compiled = baseCompile(template.trim(), finalOptions)
       if (process.env.NODE_ENV !== 'production') {
         detectErrors(compiled.ast, warn)

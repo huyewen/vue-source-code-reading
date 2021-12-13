@@ -57,7 +57,7 @@ Vue.prototype.$mount = function (
             )
           }
         }
-      } else if (template.nodeType) {       // 模板为HTML元素节点
+      } else if (template.nodeType) {   // 模板为HTML元素节点
         template = template.innerHTML
       } else { // 无效模板
         if (process.env.NODE_ENV !== 'production') {
@@ -81,7 +81,14 @@ Vue.prototype.$mount = function (
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,
         shouldDecodeNewlinesForHref,
+        /**
+         * delimiters: 该选项可以改变纯文本插入分隔符，当不传递值时，vue默认的
+         * 分隔符为{{}}，如果我们想用其它模板，可以通过delimiters修改。
+         */
         delimiters: options.delimiters,
+        /**
+         * comments：当设为true时，将会保留且渲染模板中的HTML注释。默认行为是舍弃它们。
+         */
         comments: options.comments
       }, this)
       options.render = render
@@ -113,7 +120,7 @@ function getOuterHTML (el: Element): string {
     return container.innerHTML
   }
 }
-
+// 将compileToFunction方法暴露给Vue作为静态方法存在
 Vue.compile = compileToFunctions
 
 export default Vue
