@@ -27,7 +27,7 @@ export function initExtend (Vue: GlobalAPI) {
     /**
      * extendOptions._Ctor用于缓存构造函数，我们在使用自定子
      * 组件的时候会调用Vue.extend，初次生成vnode的时候生成新
-     * 构造函数并缓存，如果页面数据有跟新，则会重新生成vnode
+     * 构造函数并缓存，如果页面数据有更新，则会重新生成vnode
      * 并做diff，在第二次生成vnode过程中给，调用Vue.extend就
      * 回直接从缓存中取。
      */
@@ -37,7 +37,7 @@ export function initExtend (Vue: GlobalAPI) {
     }
     // 
     const name = extendOptions.name || Super.options.name
-    if (process.env.NODE_ENV !== 'production' && name) {
+    if (process.env.NODE_ENV !== 'production' && name) { // 验证组件名
       validateComponentName(name)
     }
     // 创建子类构造器

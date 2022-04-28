@@ -30,11 +30,11 @@ Vue.config.isUnknownElement = isUnknownElement
 /**
  * platformDirectives : {model,show}
  */
-extend(Vue.options.directives, platformDirectives)
+extend(Vue.options.directives, platformDirectives) // 添加全局指令
 /**
  * platformComponents : {Transition,TransitionGroup}
  */
-extend(Vue.options.components, platformComponents)
+extend(Vue.options.components, platformComponents) // 添加全局组件
 
 // install platform patch function
 Vue.prototype.__patch__ = inBrowser ? patch : noop

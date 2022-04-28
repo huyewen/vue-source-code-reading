@@ -4,26 +4,27 @@ export const emptyObject = Object.freeze({})
 
 // These helpers produce better VM code in JS engines due to their
 // explicitness and function inlining.
-export function isUndef (v: any): boolean %checks {
+export function isUndef (v: any): boolean % checks {
   return v === undefined || v === null
 }
 
-export function isDef (v: any): boolean %checks {
+export function isDef (v: any): boolean {
   return v !== undefined && v !== null
 }
 
-export function isTrue (v: any): boolean %checks {
+export function isTrue (v: any): boolean {
   return v === true
 }
 
-export function isFalse (v: any): boolean %checks {
+export function isFalse (v: any): boolean {
   return v === false
 }
 
 /**
  * Check if value is primitive.
+ * 是否原始类型
  */
-export function isPrimitive (value: any): boolean %checks {
+export function isPrimitive (value: any): boolean {
   return (
     typeof value === 'string' ||
     typeof value === 'number' ||
@@ -38,15 +39,11 @@ export function isPrimitive (value: any): boolean %checks {
  * Objects from primitive values when we know the value
  * is a JSON-compliant type.
  */
-export function isObject (obj: mixed): boolean %checks {
+export function isObject (obj: mixed): boolean {
   return obj !== null && typeof obj === 'object'
 }
 
-/**
- * Get the raw type string of a value, e.g., [object Object].
- */
-const _toString = Object.prototype.toString
-
+// 获取值的类型
 export function toRawType (value: any): string {
   return _toString.call(value).slice(8, -1)
 }
@@ -68,6 +65,7 @@ export function isRegExp (v: any): boolean {
  */
 export function isValidArrayIndex (val: any): boolean {
   const n = parseFloat(String(val))
+  // 大于等于0，整数，非无穷数
   return n >= 0 && Math.floor(n) === n && isFinite(val)
 }
 
@@ -102,6 +100,7 @@ export function toNumber (val: string): number | string {
 /**
  * Make a map and return a function for checking if a key
  * is in that map.
+ * 返回一个映射对象，用于判断某个子字符串是否在设定的字符串中
  */
 export function makeMap (
   str: string,
@@ -117,18 +116,10 @@ export function makeMap (
     : val => map[val]
 }
 
-/**
- * Check if a tag is a built-in tag.
- */
-export const isBuiltInTag = makeMap('slot,component', true)
+
 
 /**
- * Check if an attribute is a reserved attribute.
- */
-export const isReservedAttribute = makeMap('key,ref,slot,slot-scope,is')
-
-/**
- * Remove an item from an array.
+ * Remove an item from an array.移除数组中的某一项
  */
 export function remove (arr: Array<any>, item: any): Array<any> | void {
   if (arr.length) {
@@ -139,10 +130,6 @@ export function remove (arr: Array<any>, item: any): Array<any> | void {
   }
 }
 
-/**
- * Check whether an object has the property.
- */
-const hasOwnProperty = Object.prototype.hasOwnProperty
 export function hasOwn (obj: Object | Array<*>, key: string): boolean {
   return hasOwnProperty.call(obj, key)
 }
@@ -155,31 +142,11 @@ export function cached<F: Function> (fn: F): F {
   return (function cachedFn (str: string) {
     const hit = cache[str]
     return hit || (cache[str] = fn(str))
-  }: any)
+  }:)
 }
 
-/**
- * Camelize a hyphen-delimited string.
- */
-const camelizeRE = /-(\w)/g
-export const camelize = cached((str: string): string => {
-  return str.replace(camelizeRE, (_, c) => c ? c.toUpperCase() : '')
-})
 
-/**
- * Capitalize a string.
- */
-export const capitalize = cached((str: string): string => {
-  return str.charAt(0).toUpperCase() + str.slice(1)
-})
 
-/**
- * Hyphenate a camelCase string.
- */
-const hyphenateRE = /\B([A-Z])/g
-export const hyphenate = cached((str: string): string => {
-  return str.replace(hyphenateRE, '-$1').toLowerCase()
-})
 
 /**
  * Simple bind polyfill for environments that do not support it,
@@ -188,7 +155,15 @@ export const hyphenate = cached((str: string): string => {
  * But removing it would mean breaking code that was able to run in
  * PhantomJS 1.x, so this must be kept for backward compatibility.
  */
-
+/**
+ *
+对不支持它的环境进行简单的绑定 polyfill，
+  例如，PhantomJS 1.x。 从技术上讲，我们不再需要这个
+  因为本机绑定现在在大多数浏览器中都具有足够的性能。
+但是删除它意味着破坏能够运行的代码
+PhantomJS 1.x，因此必须保留它以实现向后兼容性。
+ */
+// 为bind打个补丁，防止有不支持原生bind的
 /* istanbul ignore next */
 function polyfillBind (fn: Function, ctx: Object): Function {
   function boundFn (a) {
@@ -203,7 +178,7 @@ function polyfillBind (fn: Function, ctx: Object): Function {
   boundFn._length = fn.length
   return boundFn
 }
-
+// 原生bind
 function nativeBind (fn: Function, ctx: Object): Function {
   return fn.bind(ctx)
 }
@@ -215,11 +190,12 @@ export const bind = Function.prototype.bind
 /**
  * Convert an Array-like object to a real Array.
  */
+// 将类数组转化为数组
 export function toArray (list: any, start?: number): Array<any> {
   start = start || 0
-  let i = list.length - start
+  let i = list.length - start // 新数组个数
   const ret: Array<any> = new Array(i)
-  while (i--) {
+  while (i--) { // 由最后一个开始往前添加
     ret[i] = list[i + start]
   }
   return ret
@@ -228,6 +204,7 @@ export function toArray (list: any, start?: number): Array<any> {
 /**
  * Mix properties into target object.
  */
+// 将属性混入到目标对象
 export function extend (to: Object, _from: ?Object): Object {
   for (const key in _from) {
     to[key] = _from[key]
@@ -238,6 +215,7 @@ export function extend (to: Object, _from: ?Object): Object {
 /**
  * Merge an Array of Objects into a single Object.
  */
+// 合并对象数组为一个单一的新对象
 export function toObject (arr: Array<any>): Object {
   const res = {}
   for (let i = 0; i < arr.length; i++) {
@@ -255,7 +233,7 @@ export function toObject (arr: Array<any>): Object {
  * Stubbing args to make Flow happy without leaving useless transpiled code
  * with ...rest (https://flow.org/blog/2017/05/07/Strict-Function-Call-Arity/).
  */
-export function noop (a?: any, b?: any, c?: any) {}
+export function noop (a?: any, b?: any, c?: any) { }
 
 /**
  * Always return false.
@@ -281,22 +259,23 @@ export function genStaticKeys (modules: Array<ModuleOptions>): string {
 /**
  * Check if two values are loosely equal - that is,
  * if they are plain objects, do they have the same shape?
+ * 检查两个值是不是大致相等，也就是说假如它们形状相同，那就算相等，注意，不是绝对相等
  */
 export function looseEqual (a: any, b: any): boolean {
-  if (a === b) return true
+  if (a === b) return true // 同个对象，返回true
   const isObjectA = isObject(a)
   const isObjectB = isObject(b)
-  if (isObjectA && isObjectB) {
+  if (isObjectA && isObjectB) { // 两者都是对象
     try {
       const isArrayA = Array.isArray(a)
       const isArrayB = Array.isArray(b)
-      if (isArrayA && isArrayB) {
+      if (isArrayA && isArrayB) { // 两者都是数组
         return a.length === b.length && a.every((e, i) => {
           return looseEqual(e, b[i])
         })
       } else if (a instanceof Date && b instanceof Date) {
         return a.getTime() === b.getTime()
-      } else if (!isArrayA && !isArrayB) {
+      } else if (!isArrayA && !isArrayB) { // 两者都不是数组
         const keysA = Object.keys(a)
         const keysB = Object.keys(b)
         return keysA.length === keysB.length && keysA.every(key => {
@@ -310,9 +289,9 @@ export function looseEqual (a: any, b: any): boolean {
       /* istanbul ignore next */
       return false
     }
-  } else if (!isObjectA && !isObjectB) {
+  } else if (!isObjectA && !isObjectB) { // 两者都不是对象
     return String(a) === String(b)
-  } else {
+  } else { // 一个对象一个不是，那肯定不会相同了
     return false
   }
 }
