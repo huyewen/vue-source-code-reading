@@ -39,7 +39,7 @@ export function createElement (
     children = data // 没有data时第二个参数就是children
     data = undefined
   }
-  if (isTrue(alwaysNormalize)) { // 没有data时这里会是undefined
+  if (isTrue(alwaysNormalize)) { // 如果是手写render，所以是always校验，每一个都要校验
     normalizationType = ALWAYS_NORMALIZE
   }
   return _createElement(context, tag, data, children, normalizationType)
@@ -102,12 +102,13 @@ export function _createElement (
     data.scopedSlots = { default: children[0] }
     children.length = 0
   }
-  if (normalizationType === ALWAYS_NORMALIZE) {
-    children = normalizeChildren(children)
-  } else if (normalizationType === SIMPLE_NORMALIZE) {
+  if (normalizationType === ALWAYS_NORMALIZE) { // 用户手写的render函数
+    children = normalizeChildren(children) // 递归校验
+  } else if (normalizationType === SIMPLE_NORMALIZE) { // 模板编译生成的的render函数
     children = simpleNormalizeChildren(children)
   }
-  let vnode, ns
+
+  let vnode, ns // ns  namespace
   if (typeof tag === 'string') {
     let Ctor
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)

@@ -30,8 +30,8 @@ export function simpleNormalizeChildren (children: any) {
 // is needed to cater to all possible types of children values.
 export function normalizeChildren (children: any): ?Array<VNode> {
   return isPrimitive(children)
-    ? [createTextVNode(children)]
-    : Array.isArray(children)
+    ? [createTextVNode(children)] // 原始值则创建空节点
+    : Array.isArray(children) // 数组则递归调用
       ? normalizeArrayChildren(children)
       : undefined
 }
