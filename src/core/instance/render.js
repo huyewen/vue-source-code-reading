@@ -20,17 +20,28 @@ export function initRender (vm: Component) {
   vm._vnode = null // the root of the child tree
   vm._staticTrees = null // v-once cached trees
   const options = vm.$options
-  const parentVnode = vm.$vnode = options._parentVnode // the placeholder node in parent tree
+  const parentVnode = vm.$vnode = options._parentVnode // 父树中的占位符节点
   const renderContext = parentVnode && parentVnode.context
+
   vm.$slots = resolveSlots(options._renderChildren, renderContext)
-  vm.$scopedSlots = emptyObject
-  // bind the createElement fn to this instance
-  // so that we get proper render context inside it.
-  // args order: tag, data, children, normalizationType, alwaysNormalize
-  // internal version is used by render functions compiled from templates
+  vm.$scopedSlots = emptyObject // 初始化为空对象
+
+  // 将 createElement fn 绑定到这个实例
+  // 以便我们在其中获得正确的渲染上下文。
+
+  /**
+   * 参数顺序: a: tag, b: data, c: children, d: normalizationType, alwaysNormalize
+   * _c和$createElement唯一区别就是最后一个参数不同，通过模板生成的render可以
+   * 保证子节点都是Vnode，而手写的render需要进行一些检验和转换。
+   */
+  /**
+   * createElement实际上是对_createElement方法进行再次封装，在调用_createElement前，
+   * 它会先对传入的参数进行处理，毕竟手写的render函数参数规格不统一，比如第二个参数如果是
+   * 变量或者数组，则默认是没有传递data
+   */
+  // 内部编译由从模板编译的渲染函数使用
   vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
-  // normalization is always applied for the public version, used in
-  // user-written render functions.
+  // 用于用户编写的渲染函数。
   vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
 
   // $attrs & $listeners are exposed for easier HOC creation.

@@ -49,14 +49,19 @@ export function proxy (target: Object, sourceKey: string, key: string) {
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
+  // 初始化props
   if (opts.props) initProps(vm, opts.props)
+  // 初始化methods
   if (opts.methods) initMethods(vm, opts.methods)
+  // 初始化data
   if (opts.data) {
     initData(vm)
   } else {
     observe(vm._data = {}, true /* asRootData */)
   }
+  // 初始化computed
   if (opts.computed) initComputed(vm, opts.computed)
+  // 初始化watch
   if (opts.watch && opts.watch !== nativeWatch) {
     initWatch(vm, opts.watch)
   }
@@ -130,7 +135,7 @@ function initData (vm: Component) {
   let i = keys.length
   while (i--) {
     const key = keys[i]
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== 'production') { // 在methods中有相同名字属性
       if (methods && hasOwn(methods, key)) {
         warn(
           `Method "${key}" has already been defined as a data property.`,
@@ -138,7 +143,7 @@ function initData (vm: Component) {
         )
       }
     }
-    if (props && hasOwn(props, key)) {
+    if (props && hasOwn(props, key)) { // 在props中有相同名字属性
       process.env.NODE_ENV !== 'production' && warn(
         `The data property "${key}" is already declared as a prop. ` +
         `Use prop default value instead.`,

@@ -26,24 +26,27 @@ const ALWAYS_NORMALIZE = 2
 // wrapper function for providing a more flexible interface
 // without getting yelled at by flow
 export function createElement (
-  context: Component,
+  context: Component, // vm
   tag: any,
   data: any,
   children: any,
   normalizationType: any,
   alwaysNormalize: boolean
 ): VNode | Array<VNode> {
+  // 数组或者原始类型值，则默认没有传递data
   if (Array.isArray(data) || isPrimitive(data)) {
-    normalizationType = children
-    children = data
+    normalizationType = children // 没有data第三个参数就是normalizationType
+    children = data // 没有data时第二个参数就是children
     data = undefined
   }
-  if (isTrue(alwaysNormalize)) {
+  if (isTrue(alwaysNormalize)) { // 没有data时这里会是undefined
     normalizationType = ALWAYS_NORMALIZE
   }
   return _createElement(context, tag, data, children, normalizationType)
 }
-
+/**
+ * 
+ */
 export function _createElement (
   context: Component,
   tag?: string | Class<Component> | Function | Object,
@@ -51,7 +54,15 @@ export function _createElement (
   children?: any,
   normalizationType?: number
 ): VNode | Array<VNode> {
+  // 以下进行一系列的数据规范性检测
+
+
+  // data存在并且是存在于$data中的响应式数据对象，这里不被允许使用
   if (isDef(data) && isDef((data: any).__ob__)) {
+    /**
+     * 避免使用已被观察的数据对象作为 vnode 数据
+     * 始终在每次渲染中创建新的 vnode 数据对象
+     */
     process.env.NODE_ENV !== 'production' && warn(
       `Avoid using observed data object as vnode data: ${JSON.stringify(data)}\n` +
       'Always create fresh vnode data objects in each render!',
@@ -60,14 +71,16 @@ export function _createElement (
     return createEmptyVNode()
   }
   // object syntax in v-bind
-  if (isDef(data) && isDef(data.is)) {
+  if (isDef(data) && isDef(data.is)) { // data中的is有值，则该值作为标签名
     tag = data.is
   }
   if (!tag) {
+    // 没有标签名则创建一个空的虚拟节点
     // in case of component :is set to falsy value
     return createEmptyVNode()
   }
   // warn against non-primitive key
+  // 如果data中的key值为非原始类型的值，这里也是不被允许的
   if (process.env.NODE_ENV !== 'production' &&
     isDef(data) && isDef(data.key) && !isPrimitive(data.key)
   ) {
@@ -80,10 +93,12 @@ export function _createElement (
     }
   }
   // support single function children as default scoped slot
-  if (Array.isArray(children) &&
+  
+  if (Array.isArray(children) && // children为数组并且第一个元素是一个函数
     typeof children[0] === 'function'
   ) {
     data = data || {}
+    // 让第一个函数作为作用域插槽的默认值
     data.scopedSlots = { default: children[0] }
     children.length = 0
   }
