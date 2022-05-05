@@ -109,7 +109,7 @@ export function createComponent (
     return
   }
 
-  const baseCtor = context.$options._base
+  const baseCtor = context.$options._base // Vue
 
   // plain options object: turn it into a constructor
   if (isObject(Ctor)) {

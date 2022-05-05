@@ -25,7 +25,7 @@ export function initExtend (Vue: GlobalAPI) {
     const Super = this // Super指向父级构造函数
     const SuperId = Super.cid // 父级cid
     /**
-     * extendOptions._Ctor用于缓存构造函数，我们在使用自定子
+     * 缓存到组件选项对象中的_Ctor中，extendOptions._Ctor用于缓存构造函数，我们在使用自定子
      * 组件的时候会调用Vue.extend，初次生成vnode的时候生成新
      * 构造函数并缓存，如果页面数据有更新，则会重新生成vnode
      * 并做diff，在第二次生成vnode过程中给，调用Vue.extend就
@@ -72,7 +72,7 @@ export function initExtend (Vue: GlobalAPI) {
 
     // create asset registers, so extended classes
     // can have their private assets too.
-    ASSET_TYPES.forEach(function (type) {
+    ASSET_TYPES.forEach(function (type) {  // 组件指令等注册方法
       Sub[type] = Super[type]
     })
     // enable recursive self-lookup
