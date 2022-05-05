@@ -14,13 +14,13 @@ export default class VNode {
   parent: VNode | void; // 组件占位节点
 
   // strictly internal
-  raw: boolean; // contains raw HTML? (server only)
-  isStatic: boolean; // hoisted static node
+  raw: boolean; // contains raw HTML? (server only) 是否包含原生HTML
+  isStatic: boolean; // hoisted static node是否静态Node
   isRootInsert: boolean; // necessary for enter transition check
   isComment: boolean; // empty comment placeholder?
-  isCloned: boolean; // is a cloned node?
+  isCloned: boolean; // 是否是克隆节点
   isOnce: boolean; // is a v-once node?
-  asyncFactory: Function | void; // async component factory function
+  asyncFactory: Function | void; // 异步组件工厂函数
   asyncMeta: Object | void;
   isAsyncPlaceholder: boolean;
   ssrContext: Object | void;
@@ -70,22 +70,24 @@ export default class VNode {
     return this.componentInstance
   }
 }
-
+// 创建一个注释节点
 export const createEmptyVNode = (text: string = '') => {
   const node = new VNode()
   node.text = text
   node.isComment = true
   return node
 }
-
+// 创建一个文本节点
 export function createTextVNode (val: string | number) {
   return new VNode(undefined, undefined, undefined, String(val))
 }
 
-// optimized shallow clone
-// used for static nodes and slot nodes because they may be reused across
-// multiple renders, cloning them avoids errors when DOM manipulations rely
-// on their elm reference.
+/**
+ * 
+优化的浅层克隆，用于静态节点和槽节点，因为它们可以跨
+多个渲染重用，克隆它们避免
+ DOM 操作依赖于它们的 elm 引用时的错误。
+ */
 export function cloneVNode (vnode: VNode): VNode {
   const cloned = new VNode(
     vnode.tag,

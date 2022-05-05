@@ -21,6 +21,7 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
 /**
  * In some cases we may want to disable observation inside a component's
  * update computation.
+ * 在某些情况下，我们可能希望在组件的更新计算中禁用观察。
  */
 export let shouldObserve: boolean = true
 
@@ -29,10 +30,10 @@ export function toggleObserving (value: boolean) {
 }
 
 /**
- * Observer class that is attached to each observed
- * object. Once attached, the observer converts the target
- * object's property keys into getter/setters that
- * collect dependencies and dispatch updates.
+ *附加到每个观察到的观察者类
+  目的。 连接后，观察者转换目标
+  对象的属性键到 getter/setter 中
+  收集依赖项并分派更新。
  */
 export class Observer {
   value: any;

@@ -38,7 +38,7 @@ let timerFunc // timer回调
 // 在触摸事件处理程序中触发时，iOS 中的 UIWebView >= 9.3.3。 它
 // 触发几次后完全停止工作...所以，如果是原生的
 // Promise 可用，我们将使用它：
-/* 伊斯坦布尔忽略下一个，$flow-disable-line */
+/* $flow-disable-line */
 if (typeof Promise !== 'undefined' && isNative(Promise)) { // 原生可用的promise可用，则使用他
   const p = Promise.resolve()
   timerFunc = () => {
@@ -66,7 +66,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) { // 原生可用的pro
     characterData: true
   })
   timerFunc = () => {
-    counter = (counter + 1) % 2
+    counter = (counter + 1) % 2 // 改变文本节点值，触发MutationObserver
     textNode.data = String(counter)
   }
   isUsingMicroTask = true
@@ -99,7 +99,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
   })
   if (!pending) {
     pending = true
-    timerFunc()
+    timerFunc() // 启动异步调用回调队列，所以在同一个事件循环中，调用nextTick的都会被push到callbacks数组中，等待下一个事件循环被调用。
   }
   // $flow-disable-line
   if (!cb && typeof Promise !== 'undefined') {

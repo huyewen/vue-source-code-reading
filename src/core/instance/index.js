@@ -17,11 +17,26 @@ function Vue (options) {
   // 调用Vue.prototype._init
   this._init(options)
 }
-
+/**
+ * 挂载_init到Vue原型上
+ */
 initMixin(Vue)
+/**
+ * 将_data、_props挂载到$data、$props
+ * 然后在Vue原型上 挂载$set、$delete、$watch
+ */
 stateMixin(Vue)
+/**
+ * 将$on、$once、$off、$emit挂载到Vue的原型上
+ */
 eventsMixin(Vue)
+/**
+ * 将_update、$forceUpdate、$destroy挂载到Vue原型上
+ */
 lifecycleMixin(Vue)
+/**
+ * 将$nextTick、_render挂载到Vue原型上
+ */
 renderMixin(Vue)
 
 export default Vue

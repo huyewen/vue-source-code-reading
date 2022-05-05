@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Vue.js example</title>
+    <script src="../vue.js"></script>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <!-- app -->
+    <div id="app">
+      <div id="message">
+        {{ $data._msg }}
+      </div>
+    </div>
+
+    <script>
+      // start app
+      var vm = new Vue({
+        el: '#app',
+        data: {
+          _msg: 'I am a ...',
+          as: 12321
+        },
+        // mounted() {
+        //   this.msg = 'I am a handsome boy';
+        //   console.log(document.querySelector('#message').textContent)
+        // }
+      })
+    </script>
+  </body>
+</html>

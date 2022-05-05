@@ -26,6 +26,16 @@ if (process.env.NODE_ENV !== 'production') {
   }
   // 警告不能以$、_开头的变量
   const warnReservedPrefix = (target, key) => {
+    /**
+     * 为了避免和vue内置的属性
+     * API和方法发生冲突
+     * 
+     * 例如
+     * 
+     * var vm = new Vue({data: {_a: 1}})
+       vm._a // undefined
+       vm.$data._a // 1      
+     */
     warn(
       `Property "${key}" must be accessed with "$data.${key}" because ` +
       'properties starting with "$" or "_" are not proxied in the Vue instance to ' +
@@ -88,6 +98,12 @@ if (process.env.NODE_ENV !== 'production') {
     if (hasProxy) {
       // determine which proxy handler to use
       const options = vm.$options
+      /**
+       * 当使用类似webpack的打包工具时，通常会使用vue-loader插件进行模板编译，这个时候
+       * options.render是存在的，并且_withStripped的属性也会设置为true。
+       * 
+       * 所以除了开发状态下是getHandler，其他情况都是hasHandler
+       */
       const handlers = options.render && options.render._withStripped
         ? getHandler
         : hasHandler
