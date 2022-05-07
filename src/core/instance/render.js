@@ -91,6 +91,7 @@ export function renderMixin (Vue: Class<Component>) {
 
     // set parent vnode. this allows render functions to have access
     // to the data on the placeholder node.
+    // 设置父节点。 这允许渲染函数访问到占位符节点上的数据。
     vm.$vnode = _parentVnode
     // render self
     let vnode
