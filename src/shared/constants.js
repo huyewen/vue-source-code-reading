@@ -6,6 +6,7 @@ export const ASSET_TYPES = [
   'filter'
 ]
 
+
 export const LIFECYCLE_HOOKS = [
   'beforeCreate',
   'created',
