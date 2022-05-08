@@ -21,10 +21,10 @@ import platformComponents from './components/index'
 
 // install platform specific utils
 Vue.config.mustUseProp = mustUseProp
-Vue.config.isReservedTag = isReservedTag
-Vue.config.isReservedAttr = isReservedAttr
-Vue.config.getTagNamespace = getTagNamespace
-Vue.config.isUnknownElement = isUnknownElement
+Vue.config.isReservedTag = isReservedTag // 判断是否为保留标签
+Vue.config.isReservedAttr = isReservedAttr // 判断是否为保留属性
+Vue.config.getTagNamespace = getTagNamespace // 获取标签命名空间
+Vue.config.isUnknownElement = isUnknownElement // 判断是否为未知元素
 
 // install platform runtime directives & components
 /**
@@ -84,6 +84,7 @@ export default Vue
 /* *
  * 经过对Vue的第二层封装后，Vue.options变成
  * Vue.options = {
+ *  _base: Vue // Vue本身，这个后面用得到
  *  filters: {},
  *  direatives: {
  *    model: { ... },

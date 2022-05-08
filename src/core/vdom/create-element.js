@@ -20,8 +20,8 @@ import {
   simpleNormalizeChildren
 } from './helpers/index'
 
-const SIMPLE_NORMALIZE = 1
-const ALWAYS_NORMALIZE = 2
+const SIMPLE_NORMALIZE = 1 // 编译器生成的render
+const ALWAYS_NORMALIZE = 2 // 手动编写的render
 
 // wrapper function for providing a more flexible interface
 // without getting yelled at by flow
