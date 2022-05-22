@@ -115,7 +115,7 @@ export function _createElement (
     if (config.isReservedTag(tag)) {
       // platform built-in elements
       if (process.env.NODE_ENV !== 'production' && isDef(data) && isDef(data.nativeOn) && data.tag !== 'component') {
-        warn(
+        warn( // v-on 的 .native 修饰符仅在组件上有效
           `The .native modifier for v-on is only valid on components but it was used on <${tag}>.`,
           context
         )
@@ -125,12 +125,15 @@ export function _createElement (
         undefined, undefined, context
       )
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
-      // component
+      // component 如果组件在实例中被注册
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
       // unknown or unlisted namespaced elements
       // check at runtime because it may get assigned a namespace when its
       // parent normalizes children
+      // 未知或未列出的命名空间元素
+       // 在运行时检查，因为它可能会被分配一个命名空间
+       // 父级标准化子级
       vnode = new VNode(
         tag, data, children,
         undefined, undefined, context

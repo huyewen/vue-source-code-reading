@@ -148,6 +148,7 @@ export function createComponent (
 
   // resolve constructor options in case global mixins are applied after
   // component constructor creation
+  // 在组件构造函数创建后，假如全局mixins被应用，则再次解析构造函数选项
   resolveConstructorOptions(Ctor)
 
   // transform component v-model data into props & events

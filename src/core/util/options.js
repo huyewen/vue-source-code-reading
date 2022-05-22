@@ -646,8 +646,8 @@ export function mergeOptions (
  */
 export function resolveAsset (
   options: Object,
-  type: string,
-  id: string,
+  type: string, // 标签类型
+  id: string, // 组件名
   warnMissing?: boolean
 ): any {
   /* istanbul ignore if */
