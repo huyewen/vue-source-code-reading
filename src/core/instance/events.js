@@ -91,30 +91,30 @@ export function eventsMixin (Vue: Class<Component>) {
   Vue.prototype.$off = function (event?: string | Array<string>, fn?: Function): Component {
     const vm: Component = this
     // all
-    if (!arguments.length) {
+    if (!arguments.length) { // 如果没有参数，则移除所有事件
       vm._events = Object.create(null)
       return vm
     }
     // array of events
-    if (Array.isArray(event)) {
+    if (Array.isArray(event)) { // 如果事件是数组，则循环移除该数组中的所有事件
       for (let i = 0, l = event.length; i < l; i++) {
         vm.$off(event[i], fn)
       }
       return vm
     }
     // specific event
-    const cbs = vm._events[event]
-    if (!cbs) {
+    const cbs = vm._events[event] // 获取事件对应的回调函数
+    if (!cbs) { // 回调函数不存在，则什么都不做，直接返回
       return vm
     }
-    if (!fn) {
+    if (!fn) { // 调用$off只提供了事件，则移除该事件相关的所有回调监听函数
       vm._events[event] = null
       return vm
     }
     // specific handler
     let cb
     let i = cbs.length
-    while (i--) {
+    while (i--) { // 循环比较，移除回调函数数组中指定的回调函数
       cb = cbs[i]
       if (cb === fn || cb.fn === fn) {
         cbs.splice(i, 1)
@@ -142,7 +142,7 @@ export function eventsMixin (Vue: Class<Component>) {
     let cbs = vm._events[event]
     if (cbs) {
       cbs = cbs.length > 1 ? toArray(cbs) : cbs
-      const args = toArray(arguments, 1)
+      const args = toArray(arguments, 1) // 将参数转为数数组
       const info = `event handler for "${event}"`
       // 执行事件相关的回调函数
       for (let i = 0, l = cbs.length; i < l; i++) {

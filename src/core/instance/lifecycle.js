@@ -58,16 +58,16 @@ export function initLifecycle (vm: Component) {
 export function lifecycleMixin (Vue: Class<Component>) {
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
-    const prevEl = vm.$el
-    const prevVnode = vm._vnode
+    const prevEl = vm.$el // 获取上一个dom节点
+    const prevVnode = vm._vnode // 获取上一个虚拟dom节点  
     const restoreActiveInstance = setActiveInstance(vm)
-    vm._vnode = vnode
+    vm._vnode = vnode // 新的虚拟节点
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
-    if (!prevVnode) {
+    if (!prevVnode) { // 如果旧的虚拟节点不存在 ，则说明是首次渲染
       // initial render
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
-    } else {
+    } else { // 数据更新引发的渲染，则将新旧虚拟节点进行比对，然后打补丁
       // updates
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
@@ -79,7 +79,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     if (vm.$el) {
       vm.$el.__vue__ = vm
     }
-    // if parent is an HOC, update its $el as well
+    // if parent is an HOC, update its $el as well 如果父组件是高阶组件，则更新父组件的$el
     if (vm.$vnode && vm.$parent && vm.$vnode === vm.$parent._vnode) {
       vm.$parent.$el = vm.$el
     }
