@@ -167,9 +167,9 @@ export function resolveConstructorOptions (Ctor: Class<Component>) {
       Ctor.superOptions = superOptions
       // check if there are any late-modified/attached options (#4976)
       // 找到已更改的配置选项
-      const modifiedOptions = resolveModifiedOptions(Ctor)
+      const modifiedOptions = resolveModifiedOptions(Ctor) // 找出子类Ctor被更改后的最新属性对象
       // update base extend options
-      if (modifiedOptions) {
+      if (modifiedOptions) { // 
         // 如果有已更改选项，则将已更改选项modifiedOptions和extend选项合并
         extend(Ctor.extendOptions, modifiedOptions)
       }
@@ -186,9 +186,9 @@ export function resolveConstructorOptions (Ctor: Class<Component>) {
 
 function resolveModifiedOptions (Ctor: Class<Component>): ?Object {
   let modified
-  const latest = Ctor.options
-  const sealed = Ctor.sealedOptions
-  for (const key in latest) {
+  const latest = Ctor.options // 子类Ctor有可能也被mixin更改过了，所以这里是最新的
+  const sealed = Ctor.sealedOptions // 这里是刚继承基类时候的options
+  for (const key in latest) { // 找出更改后的最新属性
     if (latest[key] !== sealed[key]) {
       if (!modified) modified = {}
       modified[key] = latest[key]

@@ -24,14 +24,38 @@ initMixin(Vue)
 /**
  * 将_data、_props挂载到$data、$props
  * 然后在Vue原型上 挂载$set、$delete、$watch
+ * Vue.prototype = {
+ *  ...,
+ *  $data: {},
+ *  $props: {},
+ *  $set: function(){},
+ *  $delete: function() {},
+ *  $watch: function() {},
+ *  ...
+ * }
  */
 stateMixin(Vue)
 /**
  * 将$on、$once、$off、$emit挂载到Vue的原型上
+ * Vue.prototype = {
+ *  ...,
+ *  $on: function(){},
+ *  $once: function() {},
+ *  $off: function() {},
+ *  $emit: function() {},
+ *  ...
+ * }
  */
 eventsMixin(Vue)
 /**
  * 将_update、$forceUpdate、$destroy挂载到Vue原型上
+ *  Vue.prototype = {
+ *  ...,
+ *  _update: function(){},
+ *  $forceUpdate: function() {},
+ *  $destroy: function() {},
+ *  ...
+ * }
  */
 lifecycleMixin(Vue)
 /**

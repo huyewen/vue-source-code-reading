@@ -33,16 +33,17 @@ export function handleError (err: Error, vm: any, info: string) {
   }
 }
 
+
 export function invokeWithErrorHandling (
   handler: Function,
   context: any,
   args: null | any[],
   vm: any,
-  info: string
+  info: string // 错误提醒文本
 ) {
   let res
   try {
-    res = args ? handler.apply(context, args) : handler.call(context)
+    res = args ? handler.apply(context, args) : handler.call(context) // 执行回调函数
     if (res && !res._isVue && isPromise(res) && !res._handled) {
       res.catch(e => handleError(e, vm, info + ` (Promise/async)`))
       // issue #9511

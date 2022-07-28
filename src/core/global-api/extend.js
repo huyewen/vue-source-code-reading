@@ -77,6 +77,7 @@ export function initExtend (Vue: GlobalAPI) {
     })
     // enable recursive self-lookup
     // 递归自我查找
+    // enable recursive self-lookup 将组件添加到自身的components中，方便组件调用自己
     if (name) {
       Sub.options.components[name] = Sub
     }
@@ -84,9 +85,11 @@ export function initExtend (Vue: GlobalAPI) {
     // keep a reference to the super options at extension time.
     // later at instantiation we can check if Super's options have
     // been updated.
+    // 在扩展时保留对超级选项的引用。
+    // 稍后在实例化时我们可以检查 Super 的选项是否已经被更新。
     Sub.superOptions = Super.options
     Sub.extendOptions = extendOptions
-    Sub.sealedOptions = extend({}, Sub.options)
+    Sub.sealedOptions = extend({}, Sub.options) // 合并后的选项
 
     /**
      * 最后 Sub上没有的属性和方法如下
