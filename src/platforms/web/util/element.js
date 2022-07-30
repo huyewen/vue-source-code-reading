@@ -68,7 +68,7 @@ export function isUnknownElement (tag: string): boolean { //
   https://www.zhangxinxu.com/wordpress/2018/03/htmlunknownelement-html5-custom-elements/
   */
   const el = document.createElement(tag) 
-  if (tag.indexOf('-') > -1) { // 存在短横线，在浏览器中会被当作自定义元素
+  if (tag.indexOf('-') > -1) { // 存在短横线，在浏览器中会被当作自定义元素，在这里允许自定义元素作为未知元素
     // http://stackoverflow.com/a/28210364/1070244
     return (unknownElementCache[tag] = (
       el.constructor === window.HTMLUnknownElement ||
