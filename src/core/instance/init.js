@@ -123,6 +123,7 @@ export function initInternalComponent (vm: Component, options: InternalComponent
    * 这样便于子组件能够访问到构造函数的options，例如拿到全局指令、
    * 全局组件和全局过滤器等等
    */
+  // vm.constructor 为继承自Vue的子类，所以实际上这时的options则为组件的options以及父构造函数的option的合并
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
   // 这样做是因为它比动态枚举快
@@ -149,31 +150,39 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 }
 
 // 从实例构造函数上获取配置选项
+/**
+ * 在创建当前Vue实例的时候有可能在前面的某个地方某个父构造函数的options发生了更改，所以这时候要调用resolveConstructorOptions
+ * 对构造函数的options进行一次更新
+ */
+/**
+ * 
+ * 看看父类选项是否发生了变化，之后再看看当前选项是否发生了变化，如果发生了，那就做一次更新
+ */
 export function resolveConstructorOptions (Ctor: Class<Component>) {
   // 如果不存在基类，也就是说Ctor是基础Vue构造器时，那么options就是Vue构造函数上的options（静态属性）
   // 具体Vue.options里面有什么可以看vue-2.6.14\src\platforms\web\runtime\index.js中底部的注释
   let options = Ctor.options
   // Ctor有super属性，说明Ctor是通过Vue.extend()创建的子类
   if (Ctor.super) {
-    // 以递归方式获取基类上的配置项
+    // 获取父类的options选项
     const superOptions = resolveConstructorOptions(Ctor.super)
-    // 缓存基类的配置选项
+    // 创建构造函数时缓存在子类中的父类options选项
     const cachedSuperOptions = Ctor.superOptions
-    // 当两个不相等时，说明基类的配置项发生了更改
+    // 当两个不相等时，说明父类的配置项发生了更改（例如调用了mixin）
     if (superOptions !== cachedSuperOptions) {
       // super option changed,
       // need to resolve new options.
-      // 将新的基类选项重新存到构造函数中
+      // 将新的选项重新存到当前类的superOptions中
       Ctor.superOptions = superOptions
       // check if there are any late-modified/attached options (#4976)
-      // 找到已更改的配置选项
+      // 看看当前类的选项是否发生了改变
       const modifiedOptions = resolveModifiedOptions(Ctor) // 找出子类Ctor被更改后的最新属性对象
       // update base extend options
-      if (modifiedOptions) { // 
-        // 如果有已更改选项，则将已更改选项modifiedOptions和extend选项合并
+      if (modifiedOptions) { // 发生了改变
+        // 如果有已更改选项，则将已更改选项modifiedOptions添加道原先类中的extendOptions中
         extend(Ctor.extendOptions, modifiedOptions)
       }
-      // 将基类选项和extend选项进行合并后重新赋值给options
+      // 将最新的superOptions和Ctor.extendOptions再次合并，然后赋值给options 
       options = Ctor.options = mergeOptions(superOptions, Ctor.extendOptions)
 
       if (options.name) {
