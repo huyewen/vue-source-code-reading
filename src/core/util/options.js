@@ -315,7 +315,7 @@ function mergeAssets (
   if (childVal) {
     // components,filters,directives选项必须为对象
     process.env.NODE_ENV !== 'production' && assertObjectType(key, childVal, vm)
-    // 子类选项赋值给空对象
+    // 将childVal对象的（components、filters、directives）通过键值对添加到res对象中
     return extend(res, childVal)
   } else {
     return res
@@ -592,7 +592,7 @@ export function mergeOptions (
     checkComponents(child)
   }
 
-  if (typeof child === 'function') {
+  if (typeof child === 'function') { // 有可能传一个构造函数
     child = child.options
   }
   // 校验和规范化props选项
@@ -606,14 +606,13 @@ export function mergeOptions (
    * 在子选项上应用扩展和混合,但前提是它是一个原始选项对象，而不是
    * 另一个 mergeOptions 调用的结果。只有合并的选项具有 _base 属性。
    */
-  // 针对extends扩展的子类构造器
   if (!child._base) {
-    if (child.extends) {
+    if (child.extends) { // 当存在extends选项(该选项为某个组件对象，作为扩展来源)
       parent = mergeOptions(parent, child.extends, vm)
     }
     if (child.mixins) {
       for (let i = 0, l = child.mixins.length; i < l; i++) {
-        parent = mergeOptions(parent, child.mixins[i], vm)
+        parent =  (parent, child.mixins[i], vm)
       }
     }
   }
@@ -621,12 +620,12 @@ export function mergeOptions (
   const options = {}
   let key
   // 先合并父选项中的选项
-  for (key in parent) {
+  for (key in parent) { // parent有的那一定要先合并，不管child有没有
     mergeField(key)
   }
-  for (key in child) {
+  for (key in child) { // parent没有的就再添加，经过这两布，parent和child的所有属性都被合并到一起，避免了重复合并
     // 再合并父选项中没有的选项
-    if (!hasOwn(parent, key)) {
+    if (!hasOwn(parent, key)) { 
       mergeField(key)
     }
   }

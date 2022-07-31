@@ -96,7 +96,6 @@ export default {
       pruneCacheEntry(this.cache, key, this.keys)
     }
   },
-
   mounted () {
     this.cacheVNode()
     this.$watch('include', val => {

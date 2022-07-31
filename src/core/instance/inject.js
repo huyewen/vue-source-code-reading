@@ -16,9 +16,13 @@ export function initProvide (vm: Component) {
 export function initInjections (vm: Component) {
   const result = resolveInject(vm.$options.inject, vm)
   if (result) {
-    toggleObserving(false)
+    toggleObserving(false) // 禁用观察
     Object.keys(result).forEach(key => {
       /* istanbul ignore else */
+      /**
+       * 避免直接改变注入的值，因为只要提供的组件重新呈现
+       * ，更改就会被覆盖。 注入被突变
+       */
       if (process.env.NODE_ENV !== 'production') {
         defineReactive(vm, key, result[key], () => {
           warn(
