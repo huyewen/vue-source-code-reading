@@ -31,6 +31,10 @@ export function initExtend (Vue: GlobalAPI) {
      * 并做diff，在第二次生成vnode过程中给，调用Vue.extend就
      * 回直接从缓存中取。
      */
+    /**
+     * 在当前实例中，某一个组件被重复使用，那么在第一次使用的时候该组件选项中的extendOptions._Ctor就已经
+     * 缓存下来用该选项创建的构造函数，在以后的使用中都会从缓存中直接拿出来
+     */
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId]
@@ -78,7 +82,7 @@ export function initExtend (Vue: GlobalAPI) {
     // enable recursive self-lookup
     // 递归自我查找
     // enable recursive self-lookup 将组件添加到自身的components中，方便组件调用自己
-    if (name) {
+    if (name) { // 当递归使用组件时，组件的name必须存在，不然会因为找不到组件而报错
       Sub.options.components[name] = Sub
     }
 
@@ -87,8 +91,8 @@ export function initExtend (Vue: GlobalAPI) {
     // been updated.
     // 在扩展时保留对超级选项的引用。
     // 稍后在实例化时我们可以检查 Super 的选项是否已经被更新。
-    Sub.superOptions = Super.options
-    Sub.extendOptions = extendOptions
+    Sub.superOptions = Super.options // 与父构造函数选项合并后的选项
+    Sub.extendOptions = extendOptions // 当前构造函数选项
     Sub.sealedOptions = extend({}, Sub.options) // 合并后的选项
 
     /**

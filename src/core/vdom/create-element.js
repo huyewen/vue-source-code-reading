@@ -30,8 +30,8 @@ export function createElement (
   tag: any,
   data: any,
   children: any,
-  normalizationType: any,
-  alwaysNormalize: boolean
+  normalizationType: any, // 校验类型
+  alwaysNormalize: boolean // 是否都要校验
 ): VNode | Array<VNode> {
   // 数组或者原始类型值，则默认没有传递data
   if (Array.isArray(data) || isPrimitive(data)) {
@@ -93,7 +93,7 @@ export function _createElement (
     }
   }
   // support single function children as default scoped slot
-  
+
   if (Array.isArray(children) && // children为数组并且第一个元素是一个函数
     typeof children[0] === 'function'
   ) {
@@ -132,8 +132,8 @@ export function _createElement (
       // check at runtime because it may get assigned a namespace when its
       // parent normalizes children
       // 未知或未列出的命名空间元素
-       // 在运行时检查，因为它可能会被分配一个命名空间
-       // 父级标准化子级
+      // 在运行时检查，因为它可能会被分配一个命名空间
+      // 父级标准化子级
       vnode = new VNode(
         tag, data, children,
         undefined, undefined, context

@@ -88,6 +88,8 @@ function mergeData (to: Object, from: ?Object): Object {
       // 父的数据子类数据选项没有，则将父类key添加到子类的响应式系统中
       set(to, key, fromVal)
     } else if (
+      // 两个都有并且不相等，且两方都是普通对象,则递归合并，
+      // 如果两方都存在，但不都是普通对象，则保留原先的，啥也不做
       toVal !== fromVal &&
       isPlainObject(toVal) &&
       isPlainObject(fromVal)
@@ -116,9 +118,7 @@ export function mergeDataOrFn (
     }
     // 当 parentVal 和 childVal 都存在时，
     // 我们需要返回一个函数来返回
-    // 两个函数的合并结果...不需要
-    // 在这里检查 parentVal 是否是一个函数，因为
-    // 它必须是一个传递先前合并的函数。
+    // 两个函数的合并结果
 
     return function mergedDataFn () { // 返回合并数据函数
       return mergeData(
@@ -153,7 +153,7 @@ strats.data = function (
   childVal: any,
   vm?: Component
 ): ?Function {
-  if (!vm) {
+  if (!vm) { // vm不存在
     // 必须保证组件和子类是一个函数而不是一个对象
     if (childVal && typeof childVal !== 'function') {
       process.env.NODE_ENV !== 'production' && warn(
@@ -375,6 +375,7 @@ strats.watch = function (
  * 简而言之就是，如果父类不存在相应选项，则返回子类选项，子类父类都存在，
  * 则用子类选项去覆盖父类选项，如果都不存在，则返回空对象。
  */
+// 对象覆盖混入
 strats.props =
   strats.methods =
   strats.inject =
@@ -612,7 +613,7 @@ export function mergeOptions (
     }
     if (child.mixins) {
       for (let i = 0, l = child.mixins.length; i < l; i++) {
-        parent =  (parent, child.mixins[i], vm)
+        parent = (parent, child.mixins[i], vm)
       }
     }
   }
@@ -625,7 +626,7 @@ export function mergeOptions (
   }
   for (key in child) { // parent没有的就再添加，经过这两布，parent和child的所有属性都被合并到一起，避免了重复合并
     // 再合并父选项中没有的选项
-    if (!hasOwn(parent, key)) { 
+    if (!hasOwn(parent, key)) {
       mergeField(key)
     }
   }

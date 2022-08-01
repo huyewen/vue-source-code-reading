@@ -40,7 +40,7 @@ export class Observer {
   dep: Dep;
   vmCount: number; // number of vms that have this object as root $data
 
-  constructor (value: any) {
+  constructor(value: any) {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
@@ -210,7 +210,7 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
     target.splice(key, 1, val)
     return val
   }
-  if (key in target && !(key in Object.prototype)) {
+  if (key in target && !(key in Object.prototype)) { // key 在target，但不是Object对象原型上的属性
     target[key] = val
     return val
   }
@@ -226,8 +226,9 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
     target[key] = val
     return val
   }
+  // 走到这一步，说明key不在target中，这时要将key添加到响应式系统中
   defineReactive(ob.value, key, val)
-  ob.dep.notify()
+  ob.dep.notify() // 通知更新
   return val
 }
 
