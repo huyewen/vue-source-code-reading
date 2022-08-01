@@ -34,11 +34,12 @@ export function initLifecycle (vm: Component) {
 
   // locate first non-abstract parent
   let parent = options.parent
-  if (parent && !options.abstract) {
+  if (parent && !options.abstract) { // 如果parent不是抽象组件
+    // 当parent为抽象对象并且其$parent存在时
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }
-    parent.$children.push(vm)
+    parent.$children.push(vm) // 将当前实例作为父组件的子实例
   }
 
   vm.$parent = parent
@@ -47,12 +48,12 @@ export function initLifecycle (vm: Component) {
   vm.$children = []
   vm.$refs = {}
 
-  vm._watcher = null
+  vm._watcher = null // vue实例的watcher实例对象
   vm._inactive = null
   vm._directInactive = false
-  vm._isMounted = false
-  vm._isDestroyed = false
-  vm._isBeingDestroyed = false
+  vm._isMounted = false // 标识是否已挂载
+  vm._isDestroyed = false // 标识是否已被销毁
+  vm._isBeingDestroyed = false // 表示是否正在销毁
 }
 
 export function lifecycleMixin (Vue: Class<Component>) {
@@ -146,7 +147,7 @@ export function mountComponent (
   // 将el元素对象挂到$el属性上
   vm.$el = el
   if (!vm.$options.render) {
-    vm.$options.render = createEmptyVNode
+    vm.$options.render = createEmptyVNode // 没有渲染函数，则将创建空节点的函数赋值给render
     if (process.env.NODE_ENV !== 'production') {
       /* istanbul ignore if */
       if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') ||
@@ -170,7 +171,7 @@ export function mountComponent (
    * 在这里做一个总结，说明在beforeMount之前，created之后做了些什么
    * 
    * 总结：
-   * 1、首先是判断$options选项中是否有el选项，没有就啥也不做，有则进行下一步；
+   * 1、首先是判断$options选项中是否有el选项，没有就啥也不做，等待手动挂载，有则进行下一步；
    * 2、获取el对应的元素对象，判断是否为body元素或者html元素，是的话警告报错，不是则下一步；
    * 3、判断$options中是否有render函数，没有则获取$options中的template选项，然后进行下一步，若有render函数则到第8步；
    * 4、判断template选项是否存在，存在则下一步

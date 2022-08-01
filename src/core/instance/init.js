@@ -103,7 +103,7 @@ export function initMixin (Vue: Class<Component>) {
     //   measure(`vue ${vm._name} init`, startTag, endTag)
     // }
 
-    if (vm.$options.el) {
+    if (vm.$options.el) { // 存在el选项，则挂在元素
       vm.$mount(vm.$options.el)
     }
   }
