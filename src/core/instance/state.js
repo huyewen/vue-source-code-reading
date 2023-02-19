@@ -73,9 +73,9 @@ function initProps (vm: Component, propsOptions: Object) {
   // cache prop keys so that future props updates can iterate using Array
   // instead of dynamic object key enumeration.
   const keys = vm.$options._propKeys = []
-  const isRoot = !vm.$parent
+  const isRoot = !vm.$parent // 根实例
   // root instance props should be converted
-  if (!isRoot) {
+  if (!isRoot) { // 不是根实例，那就是组件
     toggleObserving(false)
   }
   for (const key in propsOptions) {
@@ -172,6 +172,8 @@ export function getData (data: Function, vm: Component): any {
   }
 }
 
+// lazy为true表示创建watcher时执行watch.get函数，当lazy为true时，对应的dirty也为true， 
+// 表示数据发生改变时，都重新执行watch.get获取新数据
 const computedWatcherOptions = { lazy: true }
 
 function initComputed (vm: Component, computed: Object) {
@@ -182,6 +184,7 @@ function initComputed (vm: Component, computed: Object) {
 
   for (const key in computed) {
     const userDef = computed[key]
+    // 不是一个函数，那就必须是一个带有get的对象
     const getter = typeof userDef === 'function' ? userDef : userDef.get
     if (process.env.NODE_ENV !== 'production' && getter == null) {
       warn(
@@ -297,14 +300,15 @@ function initMethods (vm: Component, methods: Object) {
   }
 }
 
+
 function initWatch (vm: Component, watch: Object) {
   for (const key in watch) {
     const handler = watch[key]
-    if (Array.isArray(handler)) {
+    if (Array.isArray(handler)) { // 如果是回调函数数组，则为每个数组创建watcher
       for (let i = 0; i < handler.length; i++) {
         createWatcher(vm, key, handler[i])
       }
-    } else {
+    } else { // 如果是字符串，函数，对象
       createWatcher(vm, key, handler)
     }
   }
@@ -312,15 +316,15 @@ function initWatch (vm: Component, watch: Object) {
 
 function createWatcher (
   vm: Component,
-  expOrFn: string | Function,
+  expOrFn: string | Function, // watch中定义的为字符串，$watch定义的可能还会是一个返回字符串的函数，也可以说是get函数
   handler: any,
   options?: Object
 ) {
-  if (isPlainObject(handler)) {
-    options = handler
-    handler = handler.handler
+  if (isPlainObject(handler)) { // 如果是对象
+    options = handler // 该对象就是options配置对象
+    handler = handler.handler // 对象中的handler则是回调函数
   }
-  if (typeof handler === 'string') {
+  if (typeof handler === 'string') { // 如果是字符串，则表明是方法的键名，则handler为methods中指定的方法
     handler = vm[handler]
   }
   return vm.$watch(expOrFn, handler, options)
@@ -354,22 +358,23 @@ export function stateMixin (Vue: Class<Component>) {
 
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
-    cb: any,
+    cb: any, // 回调函数
     options?: Object
   ): Function {
     const vm: Component = this
-    if (isPlainObject(cb)) {
+    if (isPlainObject(cb)) { // 递归调用
       return createWatcher(vm, expOrFn, cb, options)
     }
     options = options || {}
-    options.user = true
+    options.user = true // 表示是侦听器watch创建的watcher
     const watcher = new Watcher(vm, expOrFn, cb, options)
-    if (options.immediate) {
+    if (options.immediate) { // 立即执行一次
       const info = `callback for immediate watcher "${watcher.expression}"`
       pushTarget()
       invokeWithErrorHandling(cb, vm, [watcher.value], vm, info)
       popTarget()
     }
+    // 返回解除监听的函数
     return function unwatchFn () {
       watcher.teardown()
     }

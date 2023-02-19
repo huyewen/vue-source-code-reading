@@ -9,6 +9,7 @@ let uid = 0
 /**
  * A dep is an observable that can have multiple
  * directives subscribing to it.
+ * dep是一个可观察实例，可以有多个指令订阅它
  */
 export default class Dep {
   static target: ?Watcher;
@@ -52,6 +53,9 @@ export default class Dep {
 // The current target watcher being evaluated.
 // This is globally unique because only one watcher
 // can be evaluated at a time.
+//正在评估的当前订阅者
+//这是全局唯一的，因为只有一个订阅者
+//可以一次评估。
 Dep.target = null
 const targetStack = []
 

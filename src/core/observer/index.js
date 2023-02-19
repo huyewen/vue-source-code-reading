@@ -46,6 +46,8 @@ export class Observer {
     this.vmCount = 0
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
+      // 不对数组每个元素做数据劫持，因为数据可能特别大，每个都做数据劫持的话太浪费性能
+      // 重写数组操作方法
       if (hasProto) {
         protoAugment(value, arrayMethods)
       } else {
@@ -108,21 +110,23 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  */
+// 创建一个观察实例
 export function observe (value: any, asRootData: ?boolean): Observer | void {
+  // 不是对象或者如果是虚拟节点对象
   if (!isObject(value) || value instanceof VNode) {
     return
   }
   let ob: Observer | void
-  if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
+  if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) { // 已经有了
     ob = value.__ob__
-  } else if (
-    shouldObserve &&
+  } else if ( // 
+    shouldObserve && // 应该被检测
     !isServerRendering() &&
-    (Array.isArray(value) || isPlainObject(value)) &&
+    (Array.isArray(value) || isPlainObject(value)) && // 数组或者原始对象
     Object.isExtensible(value) &&
-    !value._isVue
+    !value._isVue // 不是Vue对象（包含组件实例）
   ) {
-    ob = new Observer(value)
+    ob = new Observer(value) // 对为数据新建一个观察器
   }
   if (asRootData && ob) {
     ob.vmCount++
@@ -137,12 +141,14 @@ export function defineReactive (
   obj: Object,
   key: string,
   val: any,
-  customSetter?: ?Function,
-  shallow?: boolean
+  customSetter?: ?Function, // 有些值是不可以被更改的，一般开发环境下才会调用
+  shallow?: boolean // 是否是浅式响应化，如果是浅式则不会对子对象进行监听，一般用在对$attrs\$listeners上
 ) {
+  // 属性依赖收集器
   const dep = new Dep()
 
   const property = Object.getOwnPropertyDescriptor(obj, key)
+  // 该属性不可配置，就是无法重新设置set和get
   if (property && property.configurable === false) {
     return
   }
@@ -150,11 +156,13 @@ export function defineReactive (
   // cater for pre-defined getter/setters
   const getter = property && property.get
   const setter = property && property.set
+
+  // 没有getter或者只有setter，且参数只有两个，也就是只有obj和key
   if ((!getter || setter) && arguments.length === 2) {
-    val = obj[key]
+    val = obj[key] // 给传进来的参数赋值
   }
 
-  let childOb = !shallow && observe(val)
+  let childOb = !shallow && observe(val)  // 如果val还是一个对象，那就继续递归，一直到value不是对象为止
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,

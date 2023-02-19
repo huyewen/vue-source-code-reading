@@ -43,6 +43,8 @@ export function isObject (obj: mixed): boolean {
   return obj !== null && typeof obj === 'object'
 }
 
+  var _toString = Object.prototype.toString;
+
 // 获取值的类型
 export function toRawType (value: any): string {
   return _toString.call(value).slice(8, -1)

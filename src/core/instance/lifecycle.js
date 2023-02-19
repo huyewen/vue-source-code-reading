@@ -188,18 +188,19 @@ export function mountComponent (
 
   let updateComponent // 
   /* istanbul ignore if */
+  // 开发环境，启动性能检测
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
     updateComponent = () => {
       const name = vm._name
       const id = vm._uid
       const startTag = `vue-perf-start:${id}`
       const endTag = `vue-perf-end:${id}`
-
+      // 生成虚拟节点
       mark(startTag)
       const vnode = vm._render() // 调用render函数生成虚拟节点
       mark(endTag)
       measure(`vue ${name} render`, startTag, endTag)
-
+      // 生成真实DOM节点
       mark(startTag)
       vm._update(vnode, hydrating) // 将虚拟节点生成真正的DOM节点
       mark(endTag)
@@ -220,11 +221,12 @@ export function mountComponent (
    */
   new Watcher(vm, updateComponent, noop, {
     before () {
+      // 已挂载并且还没被销毁
       if (vm._isMounted && !vm._isDestroyed) {
         callHook(vm, 'beforeUpdate')
       }
     }
-  }, true /* isRenderWatcher */)
+  }, true /* isRenderWatcher */) // 创建一个渲染watcher
   hydrating = false
 
   // manually mounted instance, call mounted on self
