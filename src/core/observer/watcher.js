@@ -28,11 +28,27 @@ export default class Watcher {
   vm: Component;
   expression: string;
   cb: Function;
-  id: number;
+  /**
+   *  自增属性，在执行更新时会对watcher根据id进行排序，因为数据
+   *   处理watcher的创建顺序时computedWatcher => userWatcher => renderWatcher，所以组件内
+   * watcher的执行顺序也是 computedWatcher => userWatcher => renderWatcher，这样能保证renderWatcher执行
+   * dom更新时 computed属性是最新的。
+   */
+  id: number; 
   deep: boolean;
+  /* 
+  只有userWatcher的user属性是true
+   表示是用户手动传入的回调函数，因此在执行cb回调函数时，要try、catch捕获异常
+  */
   user: boolean;
+  /**
+   * lazy用于标识是否在创建watcher时执行watcher.get函数
+   */
   lazy: boolean;
   sync: boolean;
+  /**
+   * dirty可以理解为订阅的该属性是否为脏数据，即做过改变，用于标识数据是否需要重新获取,true为重新获取，false则读取缓存
+   */
   dirty: boolean;
   active: boolean;
   deps: Array<Dep>;
@@ -41,25 +57,39 @@ export default class Watcher {
   newDepIds: SimpleSet;
   before: ?Function;
   getter: Function;
+  /**
+   * 当前watcher的值，其为执行getter函数的结果值
+   * computedWatcher：getter函数执行的值
+   * userWatcher所对应属性的值
+   * renderWatcher 则该值为undefined
+   */
   value: any;
 
   constructor(
     vm: Component,
+    /**
+     * expOrFn为key或者函数，computedWatcher传的是函数（get函数） ，用于获取computed属性的值。
+     * userWatcher传的是属性名，通过属性名获取对应的函数
+     * renderWatcher传的是updateComponent即组件更新函数
+     * 
+     * 不过它们最终都会转化为函数，存在watcher.getter中
+     */
     expOrFn: string | Function,
-    cb: Function,
+    cb: Function, //  computedWatcher，renderWatcher传的是空函数，userWatcher传的是回调函数
     options?: ?Object,
     isRenderWatcher?: boolean // 是否作为渲染观察者
   ) {
     this.vm = vm
-    if (isRenderWatcher) {
+    if (isRenderWatcher) { // 如果是组件
       vm._watcher = this
     }
     vm._watchers.push(this)
     // options
-    if (options) {
-      this.deep = !!options.deep
+    if (options) { // 配置选项
+      // 布尔转化
+      this.deep = !!options.deep // 
       this.user = !!options.user
-      this.lazy = !!options.lazy
+      this.lazy = !!options.lazy // 标识是否在创建watcher时执行watcher.get函数
       this.sync = !!options.sync
       this.before = options.before
     } else {
@@ -221,7 +251,7 @@ export default class Watcher {
   }
 
   /**
-   * Remove self from all dependencies' subscriber list.
+   * Remove self from all dependencies' subscriber list. // 依赖订阅者列表
    */
   teardown () {
     if (this.active) {

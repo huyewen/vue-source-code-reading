@@ -41,7 +41,7 @@ export function initRender (vm: Component) {
    */
   // 内部编译由从模板编译的渲染函数使用
   vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
-  // 用于用户编写的渲染函数。
+  // 用于用户编写的渲染函数。true表示需要检验
   vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
 
   // $attrs & $listeners are exposed for easier HOC creation.

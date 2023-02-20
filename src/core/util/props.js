@@ -19,13 +19,13 @@ type PropOptions = {
 };
 
 export function validateProp (
-  key: string,
-  propOptions: Object,
-  propsData: Object,
+  key: string, // 键
+  propOptions: Object, // 当前实例定义的props
+  propsData: Object, // 父组件传入的props数据
   vm?: Component
 ): any {
   const prop = propOptions[key]
-  const absent = !hasOwn(propsData, key)
+  const absent = !hasOwn(propsData, key) 
   let value = propsData[key]
   // boolean casting
   const booleanIndex = getTypeIndex(Boolean, prop.type)

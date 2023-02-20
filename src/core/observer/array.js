@@ -28,18 +28,21 @@ methodsToPatch.forEach(function (method) {
     const result = original.apply(this, args)
     const ob = this.__ob__
     let inserted
-    switch (method) {
+    switch (method) { // 涉及元素新增的时候要绑定监听
       case 'push':
       case 'unshift':
         inserted = args
         break
-      case 'splice':
+      case 'splice': 
         inserted = args.slice(2)
         break
     }
     if (inserted) ob.observeArray(inserted)
     // notify change
     ob.dep.notify()
+
+    // 之后咱们还可以在这里检测到数组改变了之后从而触发视图更新的操作
+    // 
     return result
   })
 })

@@ -74,12 +74,9 @@ export function _createElement (
   if (isDef(data) && isDef(data.is)) { // data中的is有值，则该值作为标签名
     tag = data.is
   }
-  if (!tag) {
-    // 没有标签名则创建一个空的虚拟节点
-    // in case of component :is set to falsy value
+  if (!tag) { // 防止动态组件:is属性设置的值为空字符串或者false之类的
     return createEmptyVNode()
   }
-  // warn against non-primitive key
   // 如果data中的key值为非原始类型的值，这里也是不被允许的
   if (process.env.NODE_ENV !== 'production' &&
     isDef(data) && isDef(data.key) && !isPrimitive(data.key)
@@ -102,6 +99,7 @@ export function _createElement (
     data.scopedSlots = { default: children[0] }
     children.length = 0
   }
+
   if (normalizationType === ALWAYS_NORMALIZE) { // 用户手写的render函数
     children = normalizeChildren(children) // 递归校验
   } else if (normalizationType === SIMPLE_NORMALIZE) { // 模板编译生成的的render函数
