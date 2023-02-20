@@ -19,6 +19,7 @@ export function simpleNormalizeChildren (children: any) {
   for (let i = 0; i < children.length; i++) {
     if (Array.isArray(children[i])) {
       return Array.prototype.concat.apply([], children)
+      // return [].concat(children)
     }
   }
   return children
@@ -45,7 +46,7 @@ function normalizeArrayChildren (children: any, nestedIndex?: string): Array<VNo
   let i, c, lastIndex, last
   for (i = 0; i < children.length; i++) {
     c = children[i]
-    if (isUndef(c) || typeof c === 'boolean') continue
+    if (isUndef(c) || typeof c === 'boolean') continue // 如果啥也不是，则直接跳过
     lastIndex = res.length - 1
     last = res[lastIndex]
     //  nested

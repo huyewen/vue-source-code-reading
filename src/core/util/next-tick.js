@@ -72,7 +72,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) { // 原生可用的pro
   isUsingMicroTask = true
 } else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) { // setImmediate可用，则使用setImmediate
   // Fallback to setImmediate.
-  // Technically it leverages the (macro) task queue,
+  // Technically it leverages the ( macro) task queue,
   // but it is still a better choice than setTimeout.
   timerFunc = () => {
     setImmediate(flushCallbacks)
