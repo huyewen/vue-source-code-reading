@@ -89,7 +89,7 @@ export default class Watcher {
     if (options) { // 配置选项
       // 布尔转化
       this.deep = !!options.deep // 
-      this.user = !!options.user
+      this.user = !!options.user // 只有user watcher才会为true
       this.lazy = !!options.lazy // 标识是否在创建watcher时执行watcher.get函数
       this.sync = !!options.sync
       this.before = options.before
@@ -111,6 +111,7 @@ export default class Watcher {
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
+      // 为字符串，则通过字符串键名获取到对应属性值
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
         this.getter = noop
@@ -122,6 +123,7 @@ export default class Watcher {
         )
       }
     }
+    // lazy为true时则创建时不执行，一般只有userWatcher和renderWatcher创建时才会执行
     this.value = this.lazy
       ? undefined
       : this.get()
@@ -137,7 +139,7 @@ export default class Watcher {
     try {
       value = this.getter.call(vm, vm)
     } catch (e) {
-      if (this.user) {
+      if (this.user) { // 如果是用户手动写的回调，因此在执行cb回调函数时，要try、catch捕获异常
         handleError(e, vm, `getter for watcher "${this.expression}"`)
       } else {
         throw e
@@ -159,7 +161,7 @@ export default class Watcher {
    */
   addDep (dep: Dep) {
     const id = dep.id
-    if (!this.newDepIds.has(id)) {
+    if (!this.newDepIds.has(id)) { // 如果没有
       this.newDepIds.add(id)
       this.newDeps.push(dep)
       if (!this.depIds.has(id)) {
@@ -195,11 +197,13 @@ export default class Watcher {
    */
   update () {
     /* istanbul ignore else */
+    // 如果this.lazy为true，即当前watcher属于computedWatcher，只是设置dirty属性
+    // 也就是依赖发生变化的时候，此时并不直接从新计算，而是将dirty标记为true，下次访问的时候会重新计算
     if (this.lazy) {
       this.dirty = true
-    } else if (this.sync) {
+    } else if (this.sync) { // 如果this.sync, 执行run函数
       this.run()
-    } else {
+    } else { // 将当前watcher入队，后面在异步更新时，会遍历执行watcher的run方法
       queueWatcher(this)
     }
   }
@@ -207,10 +211,12 @@ export default class Watcher {
   /**
    * Scheduler job interface.
    * Will be called by the scheduler.
+   * run函数触发时机是 vue执行异步更新时，会遍历触发watcher的run函数
    */
   run () {
-    if (this.active) {
-      const value = this.get()
+    if (this.active) { // 激活状态
+      const value = this.get() // 调用get方法
+      // 两个值不相等，例如computed值前后不相等
       if (
         value !== this.value ||
         // Deep watchers and watchers on Object/Arrays should fire even

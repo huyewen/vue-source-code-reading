@@ -161,6 +161,7 @@ function initData (vm: Component) {
 
 export function getData (data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
+  // 这里是怎么禁用的呢？那就是推一个undefined进到targetStack，并且Dep.target为undefined
   pushTarget()
   try {
     return data.call(vm, vm)
@@ -168,7 +169,7 @@ export function getData (data: Function, vm: Component): any {
     handleError(e, vm, `data()`)
     return {}
   } finally {
-    popTarget()
+    popTarget() // 将undefined从栈中拿出来，并将target设为栈顶元素
   }
 }
 
@@ -176,6 +177,27 @@ export function getData (data: Function, vm: Component): any {
 // 表示数据发生改变时，都重新执行watch.get获取新数据
 const computedWatcherOptions = { lazy: true }
 
+
+/**
+ * 初始化computed的时候，为每个computed属性创建一个watcher，第一次创建时dirty为true，所以传入的
+ * get函数不执行，watcher.value为undefined，当第一次访问computed属性时，会执行evaluate（看下面createComputedGetter），
+ * 其中会执行一次watcher.get，此时，Dep.target被设为当前计算属性的watcher实例，在执行get期间，会访问
+ * computed属性的依赖，从而触发其它依赖属性的get方法，期间Dep.target会被所依赖属性的dep进行收集，
+ * 当依赖属性发生变化时，会遍历依赖属性收集到的依赖（watcher），并调用它们的update方法，此时当
+ * 调用computed属性的watcher.update会将dirty设置为true，它并不会立即重新计算值，只会当再一次
+ * 访问这个计算属性（可能是因为数据的变化引起的页面渲染）的时候才会重新计算。
+ */
+
+/**
+ * 简单点讲就是，计算属性初始化的时候会为每个计算属性创建一个watcher，当访问计算属性的
+ * 时候会执行计算属性的get方法，执行期间同样回去访问依赖属性，这时计算属性的watcher会被当做依赖
+ * 被收集起来，当依赖发生改变时，watcher的dirty属性会改变，表示旧的value值已是脏数据，所以下一次
+ * 获取计算属性的时候，计算属性会重新计算。
+ */
+
+/**
+ * 计算属性的改变并不会直接引起页面的改变，
+ */
 function initComputed (vm: Component, computed: Object) {
   // $flow-disable-line
   const watchers = vm._computedWatchers = Object.create(null)
@@ -206,6 +228,7 @@ function initComputed (vm: Component, computed: Object) {
     // component-defined computed properties are already defined on the
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
+    // 如果属性不存在vm实例中
     if (!(key in vm)) {
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
@@ -225,13 +248,13 @@ export function defineComputed (
   key: string,
   userDef: Object | Function
 ) {
-  const shouldCache = !isServerRendering()
-  if (typeof userDef === 'function') {
+  const shouldCache = !isServerRendering() // 
+  if (typeof userDef === 'function') { // 如果是函数
     sharedPropertyDefinition.get = shouldCache
       ? createComputedGetter(key)
       : createGetterInvoker(userDef)
     sharedPropertyDefinition.set = noop
-  } else {
+  } else { // 如果是对象
     sharedPropertyDefinition.get = userDef.get
       ? shouldCache && userDef.cache !== false
         ? createComputedGetter(key)
@@ -252,15 +275,16 @@ export function defineComputed (
 }
 
 function createComputedGetter (key) {
-  return function computedGetter () {
+  return function computedGetter () { // render阶段调用或者第一次调用时
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
-      if (watcher.dirty) {
-        watcher.evaluate()
+      if (watcher.dirty) { // 如果dirty为true，表示第一次创建时或者依赖发生了改变
+        watcher.evaluate() // 里面会调用watcher得get方法重新计算值
       }
-      if (Dep.target) {
+      if (Dep.target) { // 手动让数据属性再一次收集一下Dep.target，此时它为组件watcher。
         watcher.depend()
       }
+      // 如果不是重新计算过的，则调用旧的value值
       return watcher.value
     }
   }
