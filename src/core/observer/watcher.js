@@ -34,7 +34,7 @@ export default class Watcher {
    * watcher的执行顺序也是 computedWatcher => userWatcher => renderWatcher，这样能保证renderWatcher执行
    * dom更新时 computed属性是最新的。
    */
-  id: number; 
+  id: number;
   deep: boolean;
   /* 
   只有userWatcher的user属性是true
@@ -42,7 +42,7 @@ export default class Watcher {
   */
   user: boolean;
   /**
-   * lazy用于标识是否在创建watcher时执行watcher.get函数
+   * lazy用于标识是否在创建watcher时执行watcher.get函数，默认是false，表示创建时不执行
    */
   lazy: boolean;
   sync: boolean;
@@ -80,9 +80,10 @@ export default class Watcher {
     isRenderWatcher?: boolean // 是否作为渲染观察者
   ) {
     this.vm = vm
-    if (isRenderWatcher) { // 如果是组件
+    if (isRenderWatcher) { // 如果是渲染watcher
       vm._watcher = this
     }
+    // 该实例所拥有的所有watcher实例
     vm._watchers.push(this)
     // options
     if (options) { // 配置选项
