@@ -19,16 +19,18 @@ export function traverse (val: any) {
 function _traverse (val: any, seen: SimpleSet) {
   let i, keys
   const isA = Array.isArray(val)
-  if ((!isA && !isObject(val)) || Object.isFrozen(val) || val instanceof VNode) {
+  if ((!isA && !isObject(val)) || Object.isFrozen(val) || val instanceof VNode) { // 基本类型的话，不用继续了
     return
   }
-  if (val.__ob__) {
+  // 防止重复
+  if (val.__ob__) { // 对象或者数组
     const depId = val.__ob__.dep.id
     if (seen.has(depId)) {
       return
     }
     seen.add(depId)
   }
+  // 下面遍历的过程就是取值过程，触发响应的属性的get
   if (isA) {
     i = val.length
     while (i--) _traverse(val[i], seen)

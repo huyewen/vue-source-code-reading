@@ -161,10 +161,10 @@ export default class Watcher {
    */
   addDep (dep: Dep) {
     const id = dep.id
-    if (!this.newDepIds.has(id)) { // 如果没有
+    if (!this.newDepIds.has(id)) { 
       this.newDepIds.add(id)
       this.newDeps.push(dep)
-      if (!this.depIds.has(id)) {
+      if (!this.depIds.has(id)) { // 没有订阅过的目标
         dep.addSub(this)
       }
     }
@@ -177,14 +177,14 @@ export default class Watcher {
     let i = this.deps.length
     while (i--) {
       const dep = this.deps[i]
-      if (!this.newDepIds.has(dep.id)) {
+      if (!this.newDepIds.has(dep.id)) { // 上一次订阅了，当前这次订阅的目标，那就要取消掉该目标，也就是将总控从某属性dep中删除
         dep.removeSub(this)
       }
     }
     let tmp = this.depIds
-    this.depIds = this.newDepIds
+    this.depIds = this.newDepIds // 将老的重置为最新的
     this.newDepIds = tmp
-    this.newDepIds.clear()
+    this.newDepIds.clear() // 每次执行过后都会被清空
     tmp = this.deps
     this.deps = this.newDeps
     this.newDeps = tmp

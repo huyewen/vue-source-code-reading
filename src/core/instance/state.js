@@ -273,15 +273,33 @@ export function defineComputed (
   }
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
-
+/**
+ * 第一种情况
+ * 
+ * 比如计算属性c的依赖时d1和d2，那么在第一次计算值时c的watcher实例会订
+ * 阅d1和d2（也就是cwatcher会触发d1,d2的get,从而被它们的dep进行收集），
+ * 这个时候cwatcher订阅了两个目标，当d1 d2更新时，并不会导致c的重新计算，
+ * 而是会修改c watcher中的dirty，当再次访问c时，才会重新计算值，这也就是
+ * c会有缓存效果的原因，只要dirty始终保持为false，那么拿到的永远是旧的值。
+ * 
+ * 在render函数执行时，第一次访问计算属性c，对数据d1 d2来说，它们除了收集了
+ * c watcher之外，还有页面的render watcher，当d1 d2发生改变时，会遍历subs，通知更新，
+ * 这时c watcher中的dirty会被改为true，但不会立马重新计算值，除此之外，页面watcher也会被触发，重新渲染，
+ * 最后在执行render时，会再次拿到计算属性c，此时会重新计算c的值。
+ * 
+ * 另一种情况
+ * 
+ * 当在watch中监听计算属性c时，首先在initWatch中会第一次访问c，这时触发c的get，那么首先cwatcher会被d1 d2收集，
+ * 然后userwatcher会被d1 d2收集，最后render执行访问c时，页面watcher也会被d1 d2收集起来。
+ */
 function createComputedGetter (key) {
   return function computedGetter () { // render阶段调用或者第一次调用时
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
-      if (watcher.dirty) { // 如果dirty为true，表示第一次创建时或者依赖发生了改变
+      /*一*/if (watcher.dirty) { // 如果dirty为true，表示第一次创建时或者依赖发生了改变
         watcher.evaluate() // 里面会调用watcher得get方法重新计算值
       }
-      if (Dep.target) { // 手动让数据属性再一次收集一下Dep.target，此时它为组件watcher。
+      /*二*/if (Dep.target) { // 手动让数据属性再一次收集一下Dep.target，此时它为组件watcher。
         watcher.depend()
       }
       // 如果不是重新计算过的，则调用旧的value值
