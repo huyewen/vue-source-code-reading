@@ -70,6 +70,8 @@ function createKeyToOldIdx (children, beginIdx, endIdx) {
 export function createPatchFunction (backend) {
   let i, j
   const cbs = {}
+  // nodeOps关于DOM的一系列操作方法
+  // modules关于ref/directives/attrs/class/dom-props/events/style/transition的相关create和update方法
 
   const { modules, nodeOps } = backend
 
@@ -705,7 +707,7 @@ export function createPatchFunction (backend) {
 
     let isInitialPatch = false
     const insertedVnodeQueue = []
-
+    // 第一次渲染
     if (isUndef(oldVnode)) {
       // empty mount (likely as component), create new root element
       isInitialPatch = true

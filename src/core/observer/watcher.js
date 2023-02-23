@@ -92,7 +92,7 @@ export default class Watcher {
       this.user = !!options.user // 只有user watcher才会为true
       this.lazy = !!options.lazy // 标识是否在创建watcher时执行watcher.get函数
       this.sync = !!options.sync
-      this.before = options.before
+      this.before = options.before // 该wacher执行前调用的回调，例如挂载前调用的beforeUpdate
     } else {
       this.deep = this.user = this.lazy = this.sync = false
     }

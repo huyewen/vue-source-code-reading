@@ -166,9 +166,11 @@ export function createComponent (
 
   // extract listeners, since these needs to be treated as
   // child component listeners instead of DOM listeners
+  // 组件listener
   const listeners = data.on
   // replace with listeners with .native modifier
   // so it gets processed during parent component patch.
+  // dom listeners
   data.on = data.nativeOn
 
   if (isTrue(Ctor.options.abstract)) {
@@ -215,7 +217,7 @@ export function createComponentInstanceForVnode (
 ): Component {
   const options: InternalComponentOptions = {
     _isComponent: true, // 当前实例为组件
-    _parentVnode: vnode, // 当前组件虚拟节点
+    _parentVnode: vnode, // 当前组件在父节点树中的占位节点，也就是外壳节点
     parent // 父组件实例
   }
   // check inline-template render functions
@@ -230,8 +232,8 @@ export function createComponentInstanceForVnode (
 function installComponentHooks (data: VNodeData) {
   const hooks = data.hook || (data.hook = {})
   for (let i = 0; i < hooksToMerge.length; i++) {
-    const key = hooksToMerge[i]
-    const existing = hooks[key]
+    const key = hooksToMerge[i] // 钩子键
+    const existing = hooks[key] // 是否存在这个钩子
     const toMerge = componentVNodeHooks[key]
     if (existing !== toMerge && !(existing && existing._merged)) {
       hooks[key] = existing ? mergeHook(toMerge, existing) : toMerge
