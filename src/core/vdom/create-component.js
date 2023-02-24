@@ -36,6 +36,7 @@ import {
 const componentVNodeHooks = {
   // 组件初始化时
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
+    // 如果示例存在，说明是从缓存中拿出来，只需要重新patch就行
     if (
       vnode.componentInstance &&
       !vnode.componentInstance._isDestroyed &&
@@ -45,9 +46,10 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
+      // 如果示例不存在，则为组件创建一个组件实例
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
-        activeInstance
+        activeInstance // 当前组件实例,作为即将创建的组件实例的父实例
       )
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
@@ -212,9 +214,9 @@ export function createComponent (
 // 为虚拟节点创建组件实例
 export function createComponentInstanceForVnode (
   // we know it's MountedComponentVNode but flow doesn't
-  vnode: any,
+  vnode: any, // 外壳节点，也就是在父节点树中的占位节点
   // activeInstance in lifecycle state
-  parent: any
+  parent: any // 父实例
 ): Component {
   const options: InternalComponentOptions = {
     _isComponent: true, // 当前实例为组件

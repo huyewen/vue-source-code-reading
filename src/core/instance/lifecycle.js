@@ -22,9 +22,12 @@ export let activeInstance: any = null
 export let isUpdatingChildComponent: boolean = false
 
 export function setActiveInstance (vm: Component) {
+  // 保留上一个实例
   const prevActiveInstance = activeInstance
+  // 将当前实例设为给定的
   activeInstance = vm
   return () => {
+    // 将当前实例重置为上一个给定实例
     activeInstance = prevActiveInstance
   }
 }
