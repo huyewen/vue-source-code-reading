@@ -233,12 +233,18 @@ function installComponentHooks (data: VNodeData) {
     const key = hooksToMerge[i]
     const existing = hooks[key]
     const toMerge = componentVNodeHooks[key]
+    /**
+     * existing要不就不在，这是和toMerge不等，并且整个if条件成立
+     * existing要是在，但是和toMerge相等，并且没有被合并过，那么条件也成立
+     * existing要是在，但是和toMerge相等，那两者没比较合并，条件不成立
+     * existing要是在，并且和toMerge不相等，但是已经被合并过了，那么条件也不成立
+     */
     if (existing !== toMerge && !(existing && existing._merged)) {
       hooks[key] = existing ? mergeHook(toMerge, existing) : toMerge
     }
   }
 }
-
+// 所谓的合并，就是将两个钩子函数放入一个新函数中，以达到同时调用的效果
 function mergeHook (f1: any, f2: any): Function {
   const merged = (a, b) => {
     // flow complains about extra args which is why we use any

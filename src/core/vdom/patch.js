@@ -10,6 +10,7 @@
  * of making flow understand it is not worth it.
  */
 
+
 import VNode, { cloneVNode } from './vnode'
 import config from '../config'
 import { SSR_ATTR } from 'shared/constants'
@@ -207,6 +208,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
     if (isDef(i)) {
