@@ -67,7 +67,21 @@ export function initState (vm: Component) {
   }
 }
 
+/**
+ * 如果传入的props值为基本类型，那么当父组件中的数据发生改变时，会在重新调用render时将新的props值传入，
+ * 此时在updateChildComponent 中会用新值替换掉旧值，这是触发props属性的set方法，所以会触发子组件更新
+ * 
+ * 如果传入的props值为引用类型，那么当整个属性值被全部替换时，对组件的触发流程和上面相同
+ * 如果只是改变引用类型值内部属性，则会同时通知父子组件更新
+ * 
+ * 因为对引用对象值做defineReactive时，value已经拥有__ob__，
+ * 所以当父子组件同时使用同一个对象时，它们的watcher都会被__ob__.dep作为依赖进行收集
+ * 
+ * 所以当内部属性发生改变时，会同时通知父子组件更新
+ */
+
 function initProps (vm: Component, propsOptions: Object) {
+  // 拿到父组件传下来的propsData
   const propsData = vm.$options.propsData || {}
   const props = vm._props = {}
   // cache prop keys so that future props updates can iterate using Array
@@ -76,10 +90,14 @@ function initProps (vm: Component, propsOptions: Object) {
   const isRoot = !vm.$parent // 根实例
   // root instance props should be converted
   if (!isRoot) { // 不是根实例，那就是组件
+    // 不对值进行递归监听
     toggleObserving(false)
   }
+  // propsOptions为当前组件实例中props选项定义的property对象
   for (const key in propsOptions) {
+    // 将当前实例定义的props键收集起来
     keys.push(key)
+    // 验证传入的props和当前实例定义的props类型是不是一样的，或者是否必填的时候没有给定值
     const value = validateProp(key, propsOptions, propsData, vm)
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
@@ -92,6 +110,7 @@ function initProps (vm: Component, propsOptions: Object) {
         )
       }
       defineReactive(props, key, value, () => {
+        // 表示props属性不可被更改
         if (!isRoot && !isUpdatingChildComponent) {
           warn(
             `Avoid mutating a prop directly since the value will be ` +

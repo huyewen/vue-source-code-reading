@@ -147,7 +147,30 @@ export function cached<F: Function> (fn: F): F {
   }:)
 }
 
+/**
+ * Camelize a hyphen-delimited string.
+ * 将连字符转换为驼峰命名法
+ */
+var camelizeRE = /-(\w)/g;
+export var camelize = cached(function (str) {
+  return str.replace(camelizeRE, function (_, c) { return c ? c.toUpperCase() : ''; })
+});
 
+/**
+* Capitalize a string.
+*/
+export  var capitalize = cached(function (str) {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+});
+
+/**
+* Hyphenate a camelCase string.
+* // 将驼峰命名法的字符串转换为连字符
+*/
+var hyphenateRE = /\B([A-Z])/g;
+export var hyphenate = cached(function (str) {
+  return str.replace(hyphenateRE, '-$1').toLowerCase()
+});
 
 
 /**
