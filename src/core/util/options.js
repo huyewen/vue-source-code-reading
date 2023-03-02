@@ -85,7 +85,7 @@ function mergeData (to: Object, from: ?Object): Object {
     fromVal = from[key]
 
     if (!hasOwn(to, key)) {
-      // 父的数据子类数据选项没有，则将父类key添加到子类的响应式系统中
+      // 父的数据子类数据选项没有，则将父类key添加到子类中
       set(to, key, fromVal)
     } else if (
       // 两个都有并且不相等，且两方都是普通对象,则递归合并，
@@ -153,7 +153,7 @@ strats.data = function (
   childVal: any,
   vm?: Component
 ): ?Function {
-  if (!vm) { // vm不存在
+  if (!vm) { // vm不存在，说明是组件
     // 必须保证组件和子类是一个函数而不是一个对象
     if (childVal && typeof childVal !== 'function') {
       process.env.NODE_ENV !== 'production' && warn(
@@ -385,19 +385,22 @@ strats.props =
     vm?: Component,
     key: string
   ): ?Object {
+    // 判断是不是对象，不是对象则警告
     if (childVal && process.env.NODE_ENV !== 'production') {
       assertObjectType(key, childVal, vm)
     }
-    if (!parentVal) return childVal
+    if (!parentVal) return childVal // 父不存在，就返回子
     const ret = Object.create(null)
-    extend(ret, parentVal)
-    if (childVal) extend(ret, childVal)
+    extend(ret, parentVal) // 先将父合并到一个空对象
+    if (childVal) extend(ret, childVal) // 假如子存在，在于新对象合并，有相同的，子会覆盖父
     return ret
   }
+
 strats.provide = mergeDataOrFn
 
 /**
  * Default strategy.默认策略
+ * 子有的用子的，没有用父的
  */
 const defaultStrat = function (parentVal: any, childVal: any): any {
   // 子选项不在则用父选项，子选项存在则用子选项
@@ -567,6 +570,7 @@ function normalizeDirectives (options: Object) {
 }
 
 function assertObjectType (name: string, value: any, vm: ?Component) {
+  // 不是对象，则警告
   if (!isPlainObject(value)) {
     warn(
       `Invalid value for option "${name}": expected an Object, ` +
@@ -607,13 +611,13 @@ export function mergeOptions (
    * 在子选项上应用扩展和混合,但前提是它是一个原始选项对象，而不是
    * 另一个 mergeOptions 调用的结果。只有合并的选项具有 _base 属性。
    */
-  if (!child._base) {
+  if (!child._base) { // 如果没有这个判断会怎么样？
     if (child.extends) { // 当存在extends选项(该选项为某个组件对象，作为扩展来源)
       parent = mergeOptions(parent, child.extends, vm)
     }
     if (child.mixins) {
       for (let i = 0, l = child.mixins.length; i < l; i++) {
-        parent = (parent, child.mixins[i], vm)
+        parent = mergeOptions(parent, child.mixins[i], vm)
       }
     }
   }

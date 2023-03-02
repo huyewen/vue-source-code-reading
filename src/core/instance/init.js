@@ -40,14 +40,14 @@ export function initMixin (Vue: Class<Component>) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
-      // 对 子组件 做一个性能优化，减少原型链上的动态查找，提高执行效率
+      // 用外壳占位节点中存着的数据来初始化组件
       initInternalComponent(vm, options)
     } else {
       // 根组件上对选项的合并，将全局配置选项合并到根组件的局部配置上，换句话说
       // 将构造器及构造器父级上定义的options与实例化时传入的options进行合并
       vm.$options = mergeOptions(
         // 从实例构造函数上获取选项，若其有祖先，则返回选项中包含其祖先选项
-        resolveConstructorOptions(vm.constructor),
+        resolveConstructorOptions(vm.constructor), // 这里返回的是Vue.options
         options || {},
         vm
       )
@@ -126,14 +126,14 @@ export function initInternalComponent (vm: Component, options: InternalComponent
   // vm.constructor 为继承自Vue的子类，所以实际上这时的options则为组件的options以及父构造函数的option的合并
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
-  // 这样做是因为它比动态枚举快
-  const parentVnode = options._parentVnode // 当前组件虚拟节点
+  // 当前组件在父虚拟节点树上的占位节点，里面存放着父实例解析组件得到的组件信息数据
+  const parentVnode = options._parentVnode 
   // 父组件实例
   opts.parent = options.parent
   // 将虚拟节点挂载到opts._parentVnode
   opts._parentVnode = parentVnode
 
-  // 获取当前组件的选项
+  // 从父组件传递进来的选项数据
   const vnodeComponentOptions = parentVnode.componentOptions
   // 将父组件调用当前组件所传的props数据挂载到组件实例的$options上
   opts.propsData = vnodeComponentOptions.propsData
@@ -144,7 +144,9 @@ export function initInternalComponent (vm: Component, options: InternalComponent
   opts._componentTag = vnodeComponentOptions.tag
   // 如果传入的option中如果有render，把render相关的也挂载到$options上。
   if (options.render) {
+    // 常规渲染函数
     opts.render = options.render
+    // 静态渲染函数
     opts.staticRenderFns = options.staticRenderFns
   }
 }

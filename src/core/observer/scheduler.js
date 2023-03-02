@@ -15,11 +15,13 @@ import {
 export const MAX_UPDATE_COUNT = 100
 
 const queue: Array<Watcher> = []
-const activatedChildren: Array<Component> = []
-let has: { [key: number]: ?true } = {}
+const activatedChildren: Array<Component> = [] // 定义激活的children
+let has: { [key: number]: ?true } = {} // 为了防止watcher重复添加
 let circular: { [key: number]: number } = {}
+// waiting就是当前标志位
 let waiting = false
 let flushing = false
+// 当前watcher索引
 let index = 0
 
 /**
@@ -162,8 +164,8 @@ function callActivatedHooks (queue) {
  * pushed when the queue is being flushed.
  */
 export function queueWatcher (watcher: Watcher) {
-  const id = watcher.id
-  if (has[id] == null) {
+  const id = watcher.id // 拿到watcher实例的id
+  if (has[id] == null) { // 
     has[id] = true
     if (!flushing) {
       queue.push(watcher)

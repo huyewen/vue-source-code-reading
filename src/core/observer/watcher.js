@@ -177,7 +177,7 @@ export default class Watcher {
     let i = this.deps.length
     while (i--) {
       const dep = this.deps[i]
-      if (!this.newDepIds.has(dep.id)) { // 上一次订阅了，当前这次订阅的目标，那就要取消掉该目标，也就是将总控从某属性dep中删除
+      if (!this.newDepIds.has(dep.id)) { // 更新前订阅了，更新后没有订阅，那就要取消掉该目标，也就是将watcher从某属性dep中删除
         dep.removeSub(this)
       }
     }
