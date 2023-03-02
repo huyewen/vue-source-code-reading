@@ -222,6 +222,7 @@ export function mountComponent (
    * 
    * noop 无任何操作的函数
    */
+  // 生成watcher实例时，立即执行一次updateComponent
   new Watcher(vm, updateComponent, noop, {
     before () {
       // 已挂载并且还没被销毁
@@ -234,7 +235,7 @@ export function mountComponent (
 
   // manually mounted instance, call mounted on self
   // mounted is called for render-created child components in its inserted hook
-  if (vm.$vnode == null) {
+  if (vm.$vnode == null) { // Vue实例，而非组件实例，$vnode表示在父节点树中的占位节点
     vm._isMounted = true
     callHook(vm, 'mounted')
   }
@@ -258,7 +259,7 @@ export function updateChildComponent (
   // check if there are dynamic scopedSlots (hand-written or compiled but with
   // dynamic slot names). Static scoped slots compiled from template has the
   // "$stable" marker.
-  const newScopedSlots = parentVnode.data.scopedSlots
+  const newScopedSlot$vnodes = parentVnode.data.scopedSlots
   const oldScopedSlots = vm.$scopedSlots
   const hasDynamicScopedSlot = !!(
     (newScopedSlots && !newScopedSlots.$stable) ||

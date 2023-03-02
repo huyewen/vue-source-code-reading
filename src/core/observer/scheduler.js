@@ -19,10 +19,10 @@ const activatedChildren: Array<Component> = [] // 定义激活的children
 let has: { [key: number]: ?true } = {} // 为了防止watcher重复添加
 let circular: { [key: number]: number } = {}
 // waiting就是当前标志位
-let waiting = false
-let flushing = false
-// 当前watcher索引
-let index = 0
+let waiting = false // 用来标记队列是否已经传递给nextTick的标记位
+let flushing = false // 是否正处于flushSchedulerQueue执行阶段
+
+let index = 0 // 当前正在执行的watcher索引
 
 /**
  * Reset the scheduler's state.
@@ -71,7 +71,7 @@ if (inBrowser && !isIE) {
  * Flush both queues and run the watchers.
  */
 function flushSchedulerQueue () {
-  currentFlushTimestamp = getNow()
+  currentFlushTimestamp = getNow() // 当前执行时间戳
   flushing = true
   let watcher, id
 
@@ -93,8 +93,8 @@ function flushSchedulerQueue () {
       watcher.before()
     }
     id = watcher.id
-    has[id] = null
-    watcher.run()
+    has[id] = null // 重置为null
+    watcher.run() // 执行watcher
     // in dev build, check and stop circular updates.
     if (process.env.NODE_ENV !== 'production' && has[id] != null) {
       circular[id] = (circular[id] || 0) + 1
@@ -162,17 +162,28 @@ function callActivatedHooks (queue) {
  * Push a watcher into the watcher queue.
  * Jobs with duplicate IDs will be skipped unless it's
  * pushed when the queue is being flushed.
+ * 可能在执行watcher过程中又触发了queueWatcher
  */
 export function queueWatcher (watcher: Watcher) {
   const id = watcher.id // 拿到watcher实例的id
   if (has[id] == null) { // 
     has[id] = true
-    if (!flushing) {
+    if (!flushing) { // 没在
       queue.push(watcher)
     } else {
       // if already flushing, splice the watcher based on its id
       // if already past its id, it will be run next immediately.
+
       let i = queue.length - 1
+      /**
+       * 两种情况：一种就是i = index，那么此时停下来，将新的watcher插到
+       * 当前执行watcher的下一个，当前watcher执行完可以立马执行它
+       * 
+       * 另一种情况就是，i > index 并且 queue[i].id < watcher.id(不可能相等，相等说明被添加过了，到不了这一步)
+       * 那么就将新的watcher插到i的下一个，也就是watcher是根据id升序排列的，因为当
+       * flushing为true时，说明flushSchedulerQueue已经正在执行，那么这种存在
+       * 新的watcher插入，就有可能是watcher执行期间触发的。
+       */
       while (i > index && queue[i].id > watcher.id) {
         i--
       }

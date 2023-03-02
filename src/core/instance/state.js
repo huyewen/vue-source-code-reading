@@ -309,7 +309,9 @@ export function defineComputed (
  * 另一种情况
  * 
  * 当在watch中监听计算属性c时，首先在initWatch中会第一次访问c，这时触发c的get，那么首先cwatcher会被d1 d2收集，
- * 然后userwatcher会被d1 d2收集，最后render执行访问c时，页面watcher也会被d1 d2收集起来。
+ * 然后userwatcher会被d1 d2收集，最后render执行访问c时，因为dirty已被第一次触发，所以为false,
+ * 不会重新计算，但是因为target此时为页面watcher，所以会调用cwacther.depend()，让已收集cwatcher
+ * 为依赖的响应数据再次收集一下页面watcher，所以此时页面watcher也会被d1 d2收集起来。
  */
 function createComputedGetter (key) {
   return function computedGetter () { // render阶段调用或者第一次调用时
@@ -319,7 +321,7 @@ function createComputedGetter (key) {
         watcher.evaluate() // 里面会调用watcher得get方法重新计算值
       }
       /*二*/if (Dep.target) { // 手动让数据属性再一次收集一下Dep.target，此时它为组件watcher。
-        watcher.depend()
+        watcher.depend() // 
       }
       // 如果不是重新计算过的，则调用旧的value值
       return watcher.value
