@@ -54,7 +54,7 @@ export function initExtend (Vue: GlobalAPI) {
     Sub.prototype.constructor = Sub
     Sub.cid = cid++ // 设置子类唯一编号cid值
     Sub.options = mergeOptions( // 合并子类选项
-      Super.options,
+      Super.options, // Vue的options
       extendOptions
     )
     Sub['super'] = Super // 将super指向父类构造器
@@ -99,7 +99,7 @@ export function initExtend (Vue: GlobalAPI) {
      * 最后 Sub上没有的属性和方法如下
      * Vue.version = '__VERSION__'
         Vue.compile = compileToFunctions
-        Vue.config 
+        Vue.config
         Vue.util
         Vue.set
         Vue.delete
