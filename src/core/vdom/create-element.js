@@ -138,6 +138,8 @@ export function _createElement (
       )
     }
   } else {
+    // 直接传入的是组件对象或者组件构造器，如果传入的是组件名字符串，那必须得在
+    // components或者全局components中声明yixia
     // direct component options / constructor
     vnode = createComponent(tag, data, context, children)
   }

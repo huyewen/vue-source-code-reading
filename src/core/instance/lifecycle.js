@@ -62,7 +62,7 @@ export function initLifecycle (vm: Component) {
 export function lifecycleMixin (Vue: Class<Component>) {
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
-    const prevEl = vm.$el // 获取上一个dom节点
+    const prevEl = vm.$el // 页面挂载点
     const prevVnode = vm._vnode // 获取上一个虚拟dom节点
     const restoreActiveInstance = setActiveInstance(vm)
     vm._vnode = vnode // 新的虚拟节点
