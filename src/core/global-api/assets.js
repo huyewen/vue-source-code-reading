@@ -20,6 +20,8 @@ export function initAssetRegisters (Vue: GlobalAPI) {
           validateComponentName(id)
         }
         if (type === 'component' && isPlainObject(definition)) {
+          // 当definition为普通对象时，调用extend创建构造函数
+          // 也可能传入的是一个构造函数或者异步组件工厂函数
           definition.name = definition.name || id
           definition = this.options._base.extend(definition)
         }

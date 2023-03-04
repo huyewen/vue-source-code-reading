@@ -36,7 +36,7 @@ import {
 const componentVNodeHooks = {
   // 组件初始化时
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
-    // 如果示例存在，说明是从缓存中拿出来，只需要重新patch就行
+    // 如果实例存在，说明是从缓存中拿出来，只需要重新patch就行
     if (
       vnode.componentInstance &&
       !vnode.componentInstance._isDestroyed &&
@@ -46,7 +46,7 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
-      // 如果示例不存在，则为组件创建一个组件实例
+      // 如果实例不存在，则为组件创建一个组件实例
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance // 当前组件实例,作为即将创建的组件实例的父实例
@@ -129,14 +129,31 @@ export function createComponent (
   }
 
   // async component
+  /**
+   * 异步组件注册时候传入的是一个工厂函数，所以并非像普通函数一样是
+   * extend之后的构造函数
+   */
+  /**
+   * 异步组件触发加载的时间是在执行render生成VNode过程中，也就是走到createComponent
+   * 这里，当判断组件为异步组件，也就是无Ctor.id的时候，这时候会执行resolveAsyncComponent
+   * 方法到服务器请求该异步组件的资源。
+   */
   let asyncFactory
   if (isUndef(Ctor.cid)) {
-    asyncFactory = Ctor
+    asyncFactory = Ctor // 工厂函数
+    /**
+     * resolveAsyncComponent返回的是异步组件的构造函数，不过由于异步请求，所以同步
+     * 代码获取的Ctor可能是undefined，当为undefined的时候，Vue会创建一个注释占位节点，
+     * 里面放置渲染这个异步组件所有的信息数据。
+     * 
+     * 当异步组件经过首次加载后，异步组件的资源会被缓存起来，此时，如果当前的异步
+     * 组件再次被使用时，resolveAsyncComponent会直接返回已经请求成功的异步组件资源，
+     * 此时返回的Ctor就不是undefined，所以可以进入下面的处理逻辑
+     */
     Ctor = resolveAsyncComponent(asyncFactory, baseCtor)
+    // 在第一次执行到这里时，如果Ctor不是undefined，那么有种可能，那就是异步组件工厂函数返回的
+    // 对象中delay为0并且loading组件存在，那这时返回的Ctor为loading组件的构造函数（具体可看resolveAsyncComponent代码解析）
     if (Ctor === undefined) {
-      // return a placeholder node for async component, which is rendered
-      // as a comment node but preserves all the raw information for the node.
-      // the information will be used for async server-rendering and hydration.
       return createAsyncPlaceholder(
         asyncFactory,
         data,
