@@ -134,11 +134,13 @@ export function createPatchFunction (backend) {
     index
   ) {
     if (isDef(vnode.elm) && isDef(ownerArray)) {
-      // This vnode was used in a previous render!
-      // now it's used as a new node, overwriting its elm would cause
-      // potential patch errors down the road when it's used as an insertion
-      // reference node. Instead, we clone the node on-demand before creating
-      // associated DOM element for it.
+      /**
+       * 此vnode在以前的渲染中使用过！
+现在它被用作新节点，覆盖它的elm将导致
+当它用作插入时，可能会在路上出现补丁错误
+参考节点。相反，我们在创建之前按需克隆节点
+与其关联的DOM元素
+       */
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
@@ -150,7 +152,8 @@ export function createPatchFunction (backend) {
     const data = vnode.data
     const children = vnode.children
     const tag = vnode.tag
-    if (isDef(tag)) {
+
+    if (isDef(tag)) { // 标签名存在
       if (process.env.NODE_ENV !== 'production') {
         if (data && data.pre) {
           creatingElmInVPre++
