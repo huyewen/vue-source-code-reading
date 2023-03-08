@@ -24,7 +24,7 @@ export function resolveSlots (
     // same context.
     if ((child.context === context || child.fnContext === context) &&
       data && data.slot != null
-    ) {
+    ) { // 如果有指定插槽名
       const name = data.slot
       const slot = (slots[name] || (slots[name] = []))
       if (child.tag === 'template') {
