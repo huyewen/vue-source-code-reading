@@ -12,6 +12,7 @@ type CacheEntry = {
 type CacheEntryMap = { [key: string]: ?CacheEntry };
 
 function getComponentName (opts: ?VNodeComponentOptions): ?string {
+  // 先拿到选项中的name选项，没有的话就用标签名
   return opts && (opts.Ctor.options.name || opts.tag)
 }
 
@@ -86,6 +87,7 @@ export default {
   },
 
   methods: {
+    // 在keep-alive挂载或者更新完之后触发
     cacheVNode () {
       const { cache, keys, vnodeToCache, keyToCache } = this
       if (vnodeToCache) {
@@ -97,6 +99,12 @@ export default {
         }
         keys.push(keyToCache)
         // prune oldest entry
+        // 超出最大缓存数，则将最早放进去的移除掉
+        /**
+         * 为啥要设置缓存数量限制呢？
+         * 因为componentInstance还存放在$el，也就是真实DOM，所以如果无限制的缓存，那么
+         * 对内存资源的消耗是极大的，直接影响性能。
+         */
         if (this.max && keys.length > parseInt(this.max)) {
           pruneCacheEntry(cache, keys[0], keys, this._vnode)
         }
@@ -134,18 +142,23 @@ export default {
   render () {
     // 获取子组件
     const slot = this.$slots.default
+    // 拿到子数组中第一个组件节点，如果不存在组件节点，那这里返回的就是undefined
     const vnode: VNode = getFirstComponentChild(slot)
     const componentOptions: ?VNodeComponentOptions = vnode && vnode.componentOptions
     if (componentOptions) {
       // check pattern
-      const name: ?string = getComponentName(componentOptions)
+      const name: ?string = getComponentName(componentOptions) // 获得组件名
       const { include, exclude } = this
+      /**
+       * 要是传了include或者exclude，那要对组件进行缓存的话，要不就得在include中，要不就不能在exclude，要是
+       * 都存在两者中，那么还是会被缓存，因为下面第一个条件不成立，程序接着往下执行
+       */
       if (
         // not included
         (include && (!name || !matches(include, name))) ||
         // excluded
         (exclude && name && matches(exclude, name))
-      ) {
+      ) { // 如果不在include或者在exclude中，那么就不缓存了，直接返回找到的节点
         return vnode
       }
 
@@ -155,18 +168,20 @@ export default {
         // so cid alone is not enough (#3269)
         ? componentOptions.Ctor.cid + (componentOptions.tag ? `::${componentOptions.tag}` : '')
         : vnode.key
-      if (cache[key]) {
+      if (cache[key]) { // 如果缓存存在，则直接从缓存中拿出组件实例，后面patch的时候就不用重新初始化组件实例了
         vnode.componentInstance = cache[key].componentInstance
-        // make current key freshest
+        // make current key freshest 先挪调，再加进去，保持当前key在栈顶位置
         remove(keys, key)
         keys.push(key)
       } else {
         // delay setting the cache until update
+        // 组件挂载或者更新的时候对组件做缓存
+        // 即将做缓存的虚拟节点
         this.vnodeToCache = vnode
         this.keyToCache = key
       }
 
-      vnode.data.keepAlive = true
+      vnode.data.keepAlive = true // 对当前节点进行标记
     }
     return vnode || (slot && slot[0])
   }

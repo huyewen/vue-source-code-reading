@@ -761,8 +761,9 @@ export function createPatchFunction (backend) {
         }
 
         // replacing existing element
+        // <div id="app"></div>
         const oldElm = oldVnode.elm
-        // 找到父级挂载元素
+        // 找到父级挂载元素body
         const parentElm = nodeOps.parentNode(oldElm)
 
         // create new node
@@ -777,6 +778,18 @@ export function createPatchFunction (backend) {
         )
 
         // update parent placeholder node element, recursively
+        // 递归 更新父占位符元素
+        // 就是执行一遍 父节点的 destory 和 create 父节点的 destory 和 create 、insert 的 钩子函数
+        // 类似于 style 组件，事件组件，这些 钩子函数
+        /**
+         * function isPatchable (vnode) {
+            while (vnode.componentInstance) {
+              vnode = vnode.componentInstance._vnode
+            }
+            return isDef(vnode.tag)
+          }
+         */
+
         if (isDef(vnode.parent)) {
           let ancestor = vnode.parent // 父占位节点
           const patchable = isPatchable(vnode)
@@ -808,6 +821,12 @@ export function createPatchFunction (backend) {
 
         // destroy old node
         if (isDef(parentElm)) {// 销毁旧节点
+          /**
+           * 移除旧节点，实质上，<div id="app"></div>，就是一个参考占位节点
+           * 它的作用一个就是当没传入模板或者没有render函数时，将#app指定的元素
+           * 左右模板进行编译，另一个作用就是作为插入新DOM时的参考节点，插入之后
+           * 它将会被移除
+           */
           removeVnodes([oldVnode], 0, 0)
         } else if (isDef(oldVnode.tag)) {
           invokeDestroyHook(oldVnode)

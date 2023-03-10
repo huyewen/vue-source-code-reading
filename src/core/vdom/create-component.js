@@ -36,7 +36,11 @@ import {
 const componentVNodeHooks = {
   // 组件初始化时
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
-    // 如果实例存在，说明是从缓存中拿出来，只需要重新patch就行
+    /**
+     * 如果实例存在，说明是从keepAlive缓存中拿出来，只需要重新patch就行，
+     * 当然，如果该组件没被缓存过，但是正要被缓存，那么此时不存在componentInstance，
+     * 但是keepAlive还是为true，此时条件不成立，还是按照普通组件一样继续向下执行创建流程
+     */
     if (
       vnode.componentInstance &&
       !vnode.componentInstance._isDestroyed &&
@@ -44,6 +48,7 @@ const componentVNodeHooks = {
     ) {
       // kept-alive components, treat as a patch
       const mountedNode: any = vnode // work around flow
+      // 传入的新旧vnode是同一个
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
       // 如果实例不存在，则为组件创建一个组件实例
@@ -73,8 +78,8 @@ const componentVNodeHooks = {
       componentInstance._isMounted = true
       callHook(componentInstance, 'mounted')
     }
-    if (vnode.data.keepAlive) {
-      if (context._isMounted) {
+    if (vnode.data.keepAlive) { // 如果组件是从缓存里拿出来的，或者是要第一次缓存的组件
+      if (context._isMounted) { // 更新的时候，此时context为KeepAlive实例
         // vue-router#1212
         // During updates, a kept-alive component's child components may
         // change, so directly walking the tree here may call activated hooks
@@ -82,6 +87,7 @@ const componentVNodeHooks = {
         // be processed after the whole patch process ended.
         queueActivatedComponent(componentInstance)
       } else {
+        // 会递归调用每个后代组件的activated钩子函数
         activateChildComponent(componentInstance, true /* direct */)
       }
     }
@@ -194,10 +200,7 @@ export function createComponent (
   data.on = data.nativeOn
 
   if (isTrue(Ctor.options.abstract)) {
-    // abstract components do not keep anything
-    // other than props & listeners & slot
-
-    // work around flow
+    // 如果是抽象函数，除了slot/props/listeners，其它都会被过滤掉
     const slot = data.slot
     data = {}
     if (slot) {
