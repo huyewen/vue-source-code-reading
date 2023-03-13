@@ -13,7 +13,7 @@ export function renderSlot (
 ): ?Array<VNode> {
   const scopedSlotFn = this.$scopedSlots[name]
   let nodes
-  if (scopedSlotFn) {
+  if (scopedSlotFn) { // 作用域插槽
     // scoped slot
     props = props || {}
     if (bindObject) {
@@ -25,7 +25,7 @@ export function renderSlot (
     nodes =
       scopedSlotFn(props) ||
       (typeof fallbackRender === 'function' ? fallbackRender() : fallbackRender)
-  } else {
+  } else { // 具名插槽
     nodes =
       this.$slots[name] ||
       (typeof fallbackRender === 'function' ? fallbackRender() : fallbackRender)

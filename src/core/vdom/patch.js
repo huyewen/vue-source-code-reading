@@ -34,12 +34,12 @@ const hooks = ['create', 'activate', 'update', 'remove', 'destroy']
 
 function sameVnode (a, b) {
   return (
-    a.key === b.key &&
-    a.asyncFactory === b.asyncFactory && (
+    a.key === b.key && // key值一样
+    a.asyncFactory === b.asyncFactory && ( // 要不都是异步组件，要不都不是
       (
-        a.tag === b.tag &&
-        a.isComment === b.isComment &&
-        isDef(a.data) === isDef(b.data) &&
+        a.tag === b.tag && // 标签一样
+        a.isComment === b.isComment && // 不是空占位节点
+        isDef(a.data) === isDef(b.data) && // 都有data
         sameInputType(a, b)
       ) || (
         isTrue(a.isAsyncPlaceholder) &&
@@ -453,7 +453,7 @@ export function createPatchFunction (backend) {
         canMove && nodeOps.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm)
         oldEndVnode = oldCh[--oldEndIdx]
         newStartVnode = newCh[++newStartIdx]
-      } else {
+      } else { // 单个查找
         if (isUndef(oldKeyToIdx)) oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx)
         idxInOld = isDef(newStartVnode.key)
           ? oldKeyToIdx[newStartVnode.key]
@@ -515,6 +515,7 @@ export function createPatchFunction (backend) {
     index,
     removeOnly
   ) {
+    // 如果两个相同，那就没必要比，同一个vnode tree
     if (oldVnode === vnode) {
       return
     }
@@ -524,21 +525,29 @@ export function createPatchFunction (backend) {
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
+    // 把统一elm，此时新VNode还没有elm
     const elm = vnode.elm = oldVnode.elm
-
+    // 如果oldVnode是一个异步组件占位节点
     if (isTrue(oldVnode.isAsyncPlaceholder)) {
-      if (isDef(vnode.asyncFactory.resolved)) {
+      if (isDef(vnode.asyncFactory.resolved)) { // 如果异步组件已经加载好了
         hydrate(oldVnode.elm, vnode, insertedVnodeQueue)
-      } else {
+      } else { // 还没加载好
         vnode.isAsyncPlaceholder = true
       }
       return
     }
 
-    // reuse element for static trees.
-    // note we only do this if the vnode is cloned -
-    // if the new node is not cloned it means the render functions have been
-    // reset by the hot-reload-api and we need to do a proper re-render.
+
+    /**
+     * ①isTrue(vnode.isStatic) && isTrue(oldVnode.isStatic) isStatic属性
+     * 为true的条件是当前节点是静态内容根节点，所以这里vnode和oldVnode都是静态内容根节点。
+      ②vnode.key === oldVnode.key 两个对象的key值相同
+      ③(isTrue(vnode.isCloned) || isTrue(vnode.isOnce)) 我们在生成render函数字符串中，
+      会有_m或_o，他们分别是renderStatic和markOnce方法(src/core/instance/render-static.js中)。
+      我们的patchVnode是在数据变化后调用，render方法是不变的，只不过因为执行render函数时数据变了，
+      所以生成的vnode对象和之前不同。以_m为例，再次执行_m函数，会直接从vm._staticTrees中获取tree，
+      并通过cloneVNode方法克隆一份出来，这种情况下vnode.isCloned值为true。
+     */
     if (isTrue(vnode.isStatic) &&
       isTrue(oldVnode.isStatic) &&
       vnode.key === oldVnode.key &&
@@ -551,15 +560,19 @@ export function createPatchFunction (backend) {
     let i
     const data = vnode.data
     if (isDef(data) && isDef(i = data.hook) && isDef(i = i.prepatch)) {
+      // 调用组件prepatch
       i(oldVnode, vnode)
     }
 
     const oldCh = oldVnode.children
     const ch = vnode.children
     if (isDef(data) && isPatchable(vnode)) {
+      // 更新元素上各种相关属性
       for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
+      // 调用update钩子函数
       if (isDef(i = data.hook) && isDef(i = i.update)) i(oldVnode, vnode)
     }
+
     if (isUndef(vnode.text)) {
       if (isDef(oldCh) && isDef(ch)) {
         if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)
@@ -602,12 +615,28 @@ export function createPatchFunction (backend) {
   const isRenderedModule = makeMap('attrs,class,staticClass,staticStyle,key')
 
   // Note: this is a browser-only function so we can assume elms are DOM nodes.
+  /**
+   * 这里主要做了下面几件事：
+
+把 elm 赋值给 vnode.elm 储存起来。
+比较 elm 和 vnode 的 tag 是否一样。（生产环境会跳过）
+如果 vnode 是组件节点，则使用 init 钩子生成组件节点。（在生成组件节点的时候，组件节点自己会调用 patch 方法和 hydrate 方法判断能否激活，所以，只要组件节点生成成功，那么就不需要往下判断了）
+如果 vnode 是非组件节点，那么递归比较子节点。
+比较 elm 和 vnode 的 data
+比较 elm 和 vnode 的文本（如果不一样则直接使用vnode的文本）
+需要说明的是：
+
+生产环境会忽略掉大部分错误，直接使用 vnode 对 elm 进行矫正。
+为什么要进行客户端激活？因为如果直接把 vnode 生成 DOM 并挂载是非常耗时间和内存的，所以这里激活的过程就相当于给 elm 使用 vnode 进行 patch 的过程。
+执行 hydrate 方法之后，其实就已经激活完成了，后面会直接使用invokeInsertHook(vnode, insertedVnodeQueue, true)进行插入了。
+invokeInsertHook方法会把createElm里面的insert方法缓存起来，最后在整个 root vnode 更新结束后，再一起执行insert方法。
+   */
   function hydrate (elm, vnode, insertedVnodeQueue, inVPre) {
     let i
     const { tag, data, children } = vnode
     inVPre = inVPre || (data && data.pre)
     vnode.elm = elm
-
+    // 如果是异步组件的空占位节点
     if (isTrue(vnode.isComment) && isDef(vnode.asyncFactory)) {
       vnode.isAsyncPlaceholder = true
       return true
@@ -618,6 +647,9 @@ export function createPatchFunction (backend) {
         return false
       }
     }
+    // 如果 vnode 是组件节点，则使用 init 钩子生成组件节点
+    // 在生成组件节点的时候，组件节点自己会调用 patch 方法和 hydrate 方法判断能否激活
+    // 所以，只要组件节点生成成功，那么就不需要往下判断了
     if (isDef(data)) {
       if (isDef(i = data.hook) && isDef(i = i.init)) i(vnode, true /* hydrating */)
       if (isDef(i = vnode.componentInstance)) {
@@ -626,10 +658,12 @@ export function createPatchFunction (backend) {
         return true
       }
     }
+
     if (isDef(tag)) {
       if (isDef(children)) {
         // empty element, allow client to pick up and populate children
-        if (!elm.hasChildNodes()) {
+        // elm 没有子节点但是 vnode 有子节点，则直接生成子节点插入到 elm 里面
+        if (!elm.hasChildNodes()) { // 
           createChildren(vnode, children, insertedVnodeQueue)
         } else {
           // v-html and domProps: innerHTML
@@ -648,6 +682,7 @@ export function createPatchFunction (backend) {
               return false
             }
           } else {
+            // 比较 vnode 的 v-html 内容是否和 elm 相同
             // iterate and compare children lists
             let childrenMatch = true
             let childNode = elm.firstChild
@@ -675,6 +710,7 @@ export function createPatchFunction (backend) {
           }
         }
       }
+      // 比较 elm 和 vnode 的 data
       if (isDef(data)) {
         let fullInvoke = false
         for (const key in data) {
@@ -689,7 +725,7 @@ export function createPatchFunction (backend) {
           traverse(data['class'])
         }
       }
-    } else if (elm.data !== vnode.text) {
+    } else if (elm.data !== vnode.text) { // 比较 elm 和 vnode 的文本（如果不一样则直接使用vnode的文本）
       elm.data = vnode.text
     }
     return true
@@ -792,7 +828,14 @@ export function createPatchFunction (backend) {
 
         if (isDef(vnode.parent)) {
           let ancestor = vnode.parent // 父占位节点
+          // patchable=true。这是因为当前的vnode非组件vnode，其存在真实可挂载的dom节点tag
           const patchable = isPatchable(vnode)
+          /**
+           * 执行while循环，首先对模块执行销毁工作，
+           * 这正好对应了在更新过程中添加的元素模块，
+           * 如id、ref等。代码向下，如果是真实的dom节点，
+           * 则重新挂载模块（可参考上一节中对cbs.update的分析）
+           */
           while (ancestor) {
             for (let i = 0; i < cbs.destroy.length; ++i) {
               cbs.destroy[i](ancestor)

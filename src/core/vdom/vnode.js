@@ -70,7 +70,7 @@ export default class VNode {
     return this.componentInstance
   }
 }
-// 创建一个注释节点
+// 创建一个空的占位节点
 export const createEmptyVNode = (text: string = '') => {
   const node = new VNode()
   node.text = text

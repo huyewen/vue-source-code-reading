@@ -61,13 +61,15 @@ const componentVNodeHooks = {
   },
   // 组件虚拟节点比对时
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
-    const options = vnode.componentOptions
-    const child = vnode.componentInstance = oldVnode.componentInstance
+    const options = vnode.componentOptions // 获取最新的options选项
+    // 不需要重新创建组件实例，将新势力指向老实例
+    const child = vnode.componentInstanc = oldVnode.componentInstance
+    // 更新组件的props、listeners以及children等信息值
     updateChildComponent(
       child,
       options.propsData, // updated props
       options.listeners, // updated listeners
-      vnode, // new parent vnode
+      vnode, // new parent vnode // 新占位节点
       options.children // new children
     )
   },
