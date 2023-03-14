@@ -421,9 +421,8 @@ export function createPatchFunction (backend) {
     let newEndVnode = newCh[newEndIdx]
     let oldKeyToIdx, idxInOld, vnodeToMove, refElm
 
-    // removeOnly is a special flag used only by <transition-group>
-    // to ensure removed elements stay in correct relative positions
-    // during leaving transitions
+    // removeOnly是一个特殊的标志，仅由<transition group>使用，以确保移除的元素在离开转换时保持在正确的相对位置
+    // 除了<transition group>时候为true，其它为false
     const canMove = !removeOnly
 
     if (process.env.NODE_ENV !== 'production') {
